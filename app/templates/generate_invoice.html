@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+
+{% block dashboard_content %}
+<div class="max-w-4xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Generate Invoice</h1>
+        <p class="text-gray-600">Create a custom invoice for {{ tenant.name }}</p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+        <!-- Tenant Info Card -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+            <h3 class="text-lg font-semibold text-blue-900 mb-4">
+                <i class="fas fa-user mr-2"></i>Tenant Information
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-sm text-blue-700 font-medium">Name</p>
+                    <p class="text-blue-900">{{ tenant.name }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-blue-700 font-medium">Phone</p>
+                    <p class="text-blue-900">{{ tenant.phone }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-blue-700 font-medium">Email</p>
+                    <p class="text-blue-900">{{ tenant.email or 'Not provided' }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-blue-700 font-medium">Unit</p>
+                    <p class="text-blue-900">{{ tenant.unit.unit_number }} - {{ tenant.unit.property.name }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-blue-700 font-medium">Base Monthly Rent</p>
+                    <p class="text-blue-900 font-semibold">KES {{ "%.2f"|format(tenant.unit.rent_amount) }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-blue-700 font-medium">Property</p>
+                    <p class="text-blue-900">{{ tenant.unit.property.location }}</p>
+                </div>
+            </div>
+        </div>
+
+        <form method="POST" class="space-y-6">
+            <!-- Invoice Details -->
+            <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-file-invoice mr-2"></i>Invoice Details
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label for="month" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-calendar mr-2 text-blue-600"></i>Month
+                        </label>
+                        <select id="month" name="month" required
+                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="January" {% if current_month=='January' %}selected{% endif %}>January
+                            </option>
+                            <option value="February" {% if current_month=='February' %}selected{% endif %}>February
+                            </option>
+                            <option value="March" {% if current_month=='March' %}selected{% endif %}>March</option>
+                            <option value="April" {% if current_month=='April' %}selected{% endif %}>April</option>
+                            <option value="May" {% if current_month=='May' %}selected{% endif %}>May</option>
+                            <option value="June" {% if current_month=='June' %}selected{% endif %}>June</option>
+                            <option value="July" {% if current_month=='July' %}selected{% endif %}>July</option>
+                            <option value="August" {% if current_month=='August' %}selected{% endif %}>August</option>
+                            <option value="September" {% if current_month=='September' %}selected{% endif %}>September
+                            </option>
+                            <option value="October" {% if current_month=='October' %}selected{% endif %}>October
+                            </option>
+                            <option value="November" {% if current_month=='November' %}selected{% endif %}>November
+                            </option>
+                            <option value="December" {% if current_month=='December' %}selected{% endif %}>December
+                            </option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="year" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-calendar-alt mr-2 text-green-600"></i>Year
+                        </label>
+                        <select id="year" name="year" required
+                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            {% for year in range(current_year-1, current_year+2) %}
+                            <option value="{{ year }}" {% if year==current_year %}selected{% endif %}>{{ year }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="rent_amount" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-money-bill-wave mr-2 text-purple-600"></i>Rent Amount (KES)
+                        </label>
+                        <input type="number" id="rent_amount" name="rent_amount" step="0.01" required value="{{ "
+                            %.2f"|format(tenant.unit.rent_amount) }}"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <p class="mt-1 text-sm text-gray-500">Base rent amount for this month</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Charges -->
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                <h3 class="text-lg font-semibold text-yellow-900 mb-4">
+                    <i class="fas fa-plus-circle mr-2"></i>Additional Charges
+                </h3>
+                <p class="text-sm text-yellow-800 mb-4">Add variable charges like water bills, electricity, maintenance
+                    fees, etc.</p>
+
+                <div id="charges-container">
+                    <div class="charge-item grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                            <input type="text" name="charge_description[]" placeholder="e.g., Water Bill"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Amount (KES)</label>
+                            <input type="number" name="charge_amount[]" step="0.01" placeholder="0.00"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div class="flex items-end">
+                            <button type="button" onclick="removeCharge(this)"
+                                class="px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors duration-200">
+                                <i class="fas fa-trash mr-2"></i>Remove
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" onclick="addCharge()"
+                    class="px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors duration-200">
+                    <i class="fas fa-plus mr-2"></i>Add Another Charge
+                </button>
+            </div>
+
+            <!-- Notes -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                <h3 class="text-lg font-semibold text-blue-900 mb-4">
+                    <i class="fas fa-sticky-note mr-2"></i>Additional Notes
+                </h3>
+                <textarea name="notes" rows="4" placeholder="Add any additional notes or instructions for the tenant..."
+                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                <p class="mt-1 text-sm text-gray-500">Optional notes that will appear on the invoice</p>
+            </div>
+
+            <!-- Invoice Information -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                <h3 class="text-lg font-semibold text-blue-900 mb-4">
+                    <i class="fas fa-info-circle mr-2"></i>Invoice Information
+                </h3>
+                <div class="flex items-start space-x-3">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-file-invoice text-blue-600 text-lg"></i>
+                    </div>
+                    <div class="text-sm text-blue-800">
+                        <p class="font-medium mb-2">This invoice will create an unpaid payment record for the selected
+                            month.</p>
+                        <ul class="space-y-1 text-blue-700">
+                            <li>• Invoice shows what the tenant should pay (rent + additional charges)</li>
+                            <li>• Creates an "Unpaid" payment record that appears on your dashboard</li>
+                            <li>• Invoice will be saved to the tenant's portal for easy access</li>
+                            <li>• Use the 'Log Rent' feature to mark payments as received</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Invoice Preview -->
+            <div id="invoice-preview" class="hidden bg-gray-50 border border-gray-200 rounded-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-eye mr-2"></i>Invoice Preview
+                </h3>
+                <div id="preview-content" class="text-sm text-gray-800 space-y-2"></div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+                <a href="{{ url_for('main.dashboard') }}"
+                    class="px-6 py-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-colors duration-200">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                </a>
+
+                <div class="flex space-x-4">
+                    <button type="button" onclick="previewInvoice()"
+                        class="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors duration-200">
+                        <i class="fas fa-eye mr-2"></i>Preview
+                    </button>
+
+                    <button type="submit"
+                        class="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors duration-200">
+                        <i class="fas fa-file-pdf mr-2"></i>Generate & Send Invoice
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function addCharge() {
+        const container = document.getElementById('charges-container');
+        const chargeItem = document.createElement('div');
+        chargeItem.className = 'charge-item grid grid-cols-1 md:grid-cols-3 gap-4 mb-4';
+        chargeItem.innerHTML = `
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+            <input type="text" name="charge_description[]" placeholder="e.g., Water Bill"
+                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Amount (KES)</label>
+            <input type="number" name="charge_amount[]" step="0.01" placeholder="0.00"
+                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <div class="flex items-end">
+            <button type="button" onclick="removeCharge(this)" 
+                class="px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors duration-200">
+                <i class="fas fa-trash mr-2"></i>Remove
+            </button>
+        </div>
+    `;
+        container.appendChild(chargeItem);
+    }
+
+    function removeCharge(button) {
+        const chargeItem = button.closest('.charge-item');
+        chargeItem.remove();
+    }
+
+    function previewInvoice() {
+        const rentAmount = parseFloat(document.getElementById('rent_amount').value) || 0;
+        const month = document.getElementById('month').value;
+        const year = document.getElementById('year').value;
+
+        // Calculate additional charges
+        let totalCharges = 0;
+        const chargeDescriptions = [];
+        const chargeInputs = document.querySelectorAll('input[name="charge_description[]"]');
+        const amountInputs = document.querySelectorAll('input[name="charge_amount[]"]');
+
+        for (let i = 0; i < chargeInputs.length; i++) {
+            const desc = chargeInputs[i].value.trim();
+            const amount = parseFloat(amountInputs[i].value) || 0;
+            if (desc && amount > 0) {
+                totalCharges += amount;
+                chargeDescriptions.push(`${desc}: KES ${amount.toLocaleString()}`);
+            }
+        }
+
+        const totalAmount = rentAmount + totalCharges;
+
+        // Build preview content
+        let previewContent = `
+        <div class="font-semibold">Invoice for ${month} ${year}</div>
+        <div>Base Rent: KES ${rentAmount.toLocaleString()}</div>
+    `;
+
+        if (chargeDescriptions.length > 0) {
+            previewContent += '<div class="font-semibold mt-2">Additional Charges:</div>';
+            chargeDescriptions.forEach(desc => {
+                previewContent += `<div class="ml-4">• ${desc}</div>`;
+            });
+        }
+
+        previewContent += `<div class="font-bold text-lg mt-2">Total Amount: KES ${totalAmount.toLocaleString()}</div>`;
+        previewContent += `<div class="text-sm text-blue-600 mt-2 font-medium">✓ Will create 'Unpaid' payment record for ${month} ${year}</div>`;
+        previewContent += `<div class="text-sm text-purple-600 mt-1 font-medium">✓ Invoice will be saved to tenant portal for easy access</div>`;
+        previewContent += `<div class="text-sm text-orange-600 mt-1 font-medium">⚠ Use 'Log Rent' to mark as paid when payment is received</div>`;
+
+        document.getElementById('preview-content').innerHTML = previewContent;
+        document.getElementById('invoice-preview').classList.remove('hidden');
+    }
+</script>
+{% endblock %}

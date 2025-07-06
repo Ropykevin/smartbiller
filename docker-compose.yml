@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: smartbiller-web
+    restart: always
+    ports:
+      - "5020:80"
+    environment:
+      - DATABASE_URL=postgresql://smartbiller:smartbiller254!@db:5432/smartbiller
+      - FLASK_ENV=production
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      - db
+    volumes:
+      - ./logs:/app/logs
+      - ./app/static:/app/app/static
+    networks:
+      - smartbiller-network
+
+  db:
+    image: postgres:13
+    container_name: smartbiller-db
+    restart: always
+    environment:
+      - POSTGRES_DB=smartbiller
+      - POSTGRES_USER=smartbiller
+      - POSTGRES_PASSWORD=smartbiller254!
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - smartbiller-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: smartbiller-nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - web
+    networks:
+      - smartbiller-network
+
+volumes:
+  postgres_data:
+
+networks:
+  smartbiller-network:
+    driver: bridge

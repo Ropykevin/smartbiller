@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+
+{% block dashboard_content %}
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="mb-6">
+  {% for category, message in messages %}
+  <div
+    class="{% if category == 'error' %}bg-red-50 border-red-200 text-red-800{% elif category == 'success' %}bg-green-50 border-green-200 text-green-800{% elif category == 'warning' %}bg-yellow-50 border-yellow-200 text-yellow-800{% else %}bg-blue-50 border-blue-200 text-blue-800{% endif %} border px-4 py-3 rounded-lg mb-3">
+    <i
+      class="fas {% if category == 'error' %}fa-exclamation-circle{% elif category == 'success' %}fa-check-circle{% elif category == 'warning' %}fa-exclamation-triangle{% else %}fa-info-circle{% endif %} mr-2"></i>
+    {{ message }}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+<div class="max-w-6xl mx-auto">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Unit History</h1>
+        <p class="text-gray-600">Payment history for {{ unit.unit_number }} at {{ unit.property.name }}</p>
+      </div>
+      <a href="{{ url_for('main.dashboard') }}"
+        class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors duration-200">
+        <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Unit Info Card -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div class="flex items-center">
+        <div class="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
+          <i class="fas fa-home text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-600">Unit Number</p>
+          <p class="text-lg font-semibold text-gray-900">{{ unit.unit_number }}</p>
+        </div>
+      </div>
+
+      <div class="flex items-center">
+        <div class="p-3 rounded-full bg-green-100 text-green-600 mr-4">
+          <i class="fas fa-building text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-600">Property</p>
+          <p class="text-lg font-semibold text-gray-900">{{ unit.property.name }}</p>
+        </div>
+      </div>
+
+      <div class="flex items-center">
+        <div class="p-3 rounded-full bg-purple-100 text-purple-600 mr-4">
+          <i class="fas fa-money-bill-wave text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-600">Monthly Rent</p>
+          <p class="text-lg font-semibold text-gray-900">KES {{ "%.2f"|format(unit.rent_amount) }}</p>
+        </div>
+      </div>
+
+      <div class="flex items-center">
+        <div class="p-3 rounded-full bg-orange-100 text-orange-600 mr-4">
+          <i class="fas fa-user text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-600">Current Tenant</p>
+          <p class="text-lg font-semibold text-gray-900">
+            {% if tenant %}
+            {{ tenant.name }}
+            {% else %}
+            <span class="text-gray-400">Vacant</span>
+            {% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment History -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
+      <h2 class="text-xl font-bold text-white">
+        <i class="fas fa-history mr-2"></i>Payment History
+      </h2>
+    </div>
+
+    <div class="p-6">
+      {% if history %}
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-gray-200">
+              <th class="text-left py-3 px-4 font-semibold text-gray-700">Date Paid</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700">Month</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700">Amount Paid</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700">Balance</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in history %}
+            <tr class="border-b border-gray-100 hover:bg-gray-50">
+              <td class="py-3 px-4">
+                <div class="flex items-center">
+                  <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                  {{ log.date_paid.strftime('%Y-%m-%d') }}
+                </div>
+              </td>
+              <td class="py-3 px-4 font-medium">{{ log.month_paid_for }}</td>
+              <td class="py-3 px-4 font-semibold text-green-600">
+                KES {{ "%.2f"|format(log.amount_paid) }}
+              </td>
+              <td class="py-3 px-4">
+                {% if log.status == 'Paid' %}
+                <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                  <i class="fas fa-check mr-1"></i>Paid
+                </span>
+                {% elif log.status == 'Partial' %}
+                <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                  <i class="fas fa-exclamation mr-1"></i>Partial
+                </span>
+                {% else %}
+                <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                  <i class="fas fa-times mr-1"></i>Unpaid
+                </span>
+                {% endif %}
+              </td>
+              <td class="py-3 px-4">
+                {% set balance = unit.rent_amount - log.amount_paid %}
+                {% if balance > 0 %}
+                <span class="text-red-600 font-medium">KES {{ "%.2f"|format(balance) }}</span>
+                {% else %}
+                <span class="text-green-600 font-medium">KES 0.00</span>
+                {% endif %}
+              </td>
+              <td class="py-3 px-4">
+                <div class="flex space-x-2">
+                  <a href="{{ url_for('main.tenant_receipt', rentlog_id=log.id) }}"
+                    class="text-blue-600 hover:text-blue-800 font-medium text-sm">
+                    <i class="fas fa-download mr-1"></i>Receipt
+                  </a>
+                  {% if tenant %}
+                  <a href="{{ url_for('main.log_rent', tenant_id=tenant.id) }}"
+                    class="text-green-600 hover:text-green-800 font-medium text-sm">
+                    <i class="fas fa-plus mr-1"></i>Log Payment
+                  </a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Summary Stats -->
+      <div class="mt-8 grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+          <div class="flex items-center">
+            <div class="p-2 bg-blue-100 rounded-lg mr-3">
+              <i class="fas fa-calendar-check text-blue-600"></i>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-blue-600">Total Payments</p>
+              <p class="text-2xl font-bold text-blue-900">{{ history|length }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-green-50 rounded-lg p-4 border border-green-200">
+          <div class="flex items-center">
+            <div class="p-2 bg-green-100 rounded-lg mr-3">
+              <i class="fas fa-money-bill-wave text-green-600"></i>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-green-600">Total Collected</p>
+              <p class="text-2xl font-bold text-green-900">
+                KES {{ "%.2f"|format(history|sum(attribute='amount_paid')) }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-purple-50 rounded-lg p-4 border border-purple-200">
+          <div class="flex items-center">
+            <div class="p-2 bg-purple-100 rounded-lg mr-3">
+              <i class="fas fa-chart-line text-purple-600"></i>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-purple-600">Average Payment</p>
+              <p class="text-2xl font-bold text-purple-900">
+                {% if history %}
+                KES {{ "%.2f"|format((history|sum(attribute='amount_paid')) / history|length) }}
+                {% else %}
+                KES 0.00
+                {% endif %}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-orange-50 rounded-lg p-4 border border-orange-200">
+          <div class="flex items-center">
+            <div class="p-2 bg-orange-100 rounded-lg mr-3">
+              <i class="fas fa-percentage text-orange-600"></i>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-orange-600">Payment Rate</p>
+              <p class="text-2xl font-bold text-orange-900">
+                {% set paid_count = history|selectattr('status', 'equalto', 'Paid')|list|length %}
+                {% if history %}
+                {{ "%.1f"|format((paid_count / history|length) * 100) }}%
+                {% else %}
+                0%
+                {% endif %}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="text-center py-12">
+        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="fas fa-file-alt text-2xl text-gray-400"></i>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">No Payment History</h3>
+        <p class="text-gray-600 mb-6">No rent payments have been recorded for this unit yet.</p>
+        {% if tenant %}
+        <a href="{{ url_for('main.log_rent', tenant_id=tenant.id) }}"
+          class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200">
+          <i class="fas fa-plus mr-2"></i>Log First Payment
+        </a>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  {% if tenant %}
+  <div class="mt-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <a href="{{ url_for('main.log_rent', tenant_id=tenant.id) }}"
+        class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+        <div class="p-2 bg-green-100 rounded-lg mr-3">
+          <i class="fas fa-plus text-green-600"></i>
+        </div>
+        <div>
+          <p class="font-medium text-gray-900">Log Payment</p>
+          <p class="text-sm text-gray-600">Record a new rent payment</p>
+        </div>
+      </a>
+
+      <a href="{{ url_for('main.update_tenant', tenant_id=tenant.id) }}"
+        class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+        <div class="p-2 bg-blue-100 rounded-lg mr-3">
+          <i class="fas fa-edit text-blue-600"></i>
+        </div>
+        <div>
+          <p class="font-medium text-gray-900">Update Tenant</p>
+          <p class="text-sm text-gray-600">Edit tenant information</p>
+        </div>
+      </a>
+
+      <a href="{{ url_for('main.send_notice') }}"
+        class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+        <div class="p-2 bg-purple-100 rounded-lg mr-3">
+          <i class="fas fa-bell text-purple-600"></i>
+        </div>
+        <div>
+          <p class="font-medium text-gray-900">Send Notice</p>
+          <p class="text-sm text-gray-600">Send SMS notification</p>
+        </div>
+      </a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
