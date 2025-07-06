@@ -16,9 +16,19 @@ RUN pip install --upgrade pip \
     && pip install --no-cache-dir -r /tmp/requirements.txt
 
 RUN pip install psycopg2-binary
-# Copy over the Flask application code to the app directory in the container
-COPY ./app /app
-COPY run.py /app/run.py
 
-# copy .env
-COPY .env .env
+# Copy the entire application (including all necessary files)
+COPY . /app/
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/instance
+
+# Set proper permissions
+RUN chmod +x /app/run_scheduled_tasks.py
+
+# Create a non-root user for security
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
+
+# Expose port 80 (handled by nginx in the base image)
+EXPOSE 80
