@@ -4,7 +4,7 @@ services:
     web:
         build: .
         # env_file: .env
-        container_name: techelar
+        container_name: smartbiller
         restart: always
         ports:
             - 5020:80
