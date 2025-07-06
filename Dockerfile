@@ -3,8 +3,8 @@ FROM tiangolo/uwsgi-nginx-flask:python3.9
 
 # Environment variables
 ENV PYTHONUNBUFFERED=1
+ENV FLASK_APP=run.py
 ENV FLASK_ENV=production
-ENV FLASK_APP=/app/run.py  # Important: absolute path
 
 # Install dependencies
 COPY requirements.txt /tmp/
