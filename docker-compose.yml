@@ -6,7 +6,7 @@ services:
     container_name: smartbiller
     restart: always
     ports:
-      - "5020:80"
+      - "5020:8080"
     env_file: .env                 # ✅ load .env variables into container
     depends_on:
       - db                         # ✅ wait for Postgres before booting
