@@ -35,5 +35,9 @@ def create_app():
     # ✅ Register blueprint
     from .routes import main
     app.register_blueprint(main)
+    print("Blueprint registered")
+    print("Database initialized")
+    print("Routes registered")
+    print("App initialized")
 
     return app
