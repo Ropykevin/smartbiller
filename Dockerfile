@@ -3,8 +3,8 @@ FROM tiangolo/uwsgi-nginx-flask:python3.9
 ENV PYTHONUNBUFFERED=1
 ENV FLASK_ENV=production
 ENV FLASK_APP=/app/run.py
-ENV UWSGI_MODULE=run         # ✅ this tells uWSGI to use run.py
-ENV UWSGI_CALLABLE=app       # ✅ this tells uWSGI to look for 'app = Flask(__name__)'
+ENV UWSGI_MODULE=run         
+ENV UWSGI_CALLABLE=app       
 
 WORKDIR /app
 
