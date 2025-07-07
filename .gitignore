@@ -99,3 +99,4 @@ app/static/exports/*.csv
 *.bak
 *.backup
 *~ 
+.gitattributes
