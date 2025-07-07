@@ -15,4 +15,6 @@ RUN pip install --upgrade pip \
 
 COPY ./app /app/app
 COPY run.py /app/run.py
+COPY uwsgi.ini /app/uwsgi.ini
+
 COPY .env /app/.env
