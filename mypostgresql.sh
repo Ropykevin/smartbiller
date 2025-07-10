@@ -45,17 +45,31 @@ NGINX_CONF_PATH="/etc/nginx/sites-available/${DOMAIN}"
 echo "Creating PostgreSQL database and user..."
 
 sudo -i -u postgres psql <<EOF
+-- Create user if not exists
 DO \$\$
 BEGIN
-   IF NOT EXISTS (SELECT FROM pg_catalog.pg_user WHERE usename = '${DB_USER}') THEN
-      CREATE USER ${DB_USER} WITH PASSWORD '${DB_PASSWORD}';
+   IF NOT EXISTS (
+      SELECT FROM pg_catalog.pg_roles WHERE rolname = '${DB_USER}'
+   ) THEN
+      CREATE ROLE ${DB_USER} LOGIN PASSWORD '${DB_PASSWORD}';
    END IF;
 END
 \$\$;
 
-CREATE DATABASE ${DB_NAME} OWNER ${DB_USER};
+-- Create database if not exists
+DO \$\$
+BEGIN
+   IF NOT EXISTS (
+      SELECT FROM pg_database WHERE datname = '${DB_NAME}'
+   ) THEN
+      CREATE DATABASE ${DB_NAME} OWNER ${DB_USER};
+   END IF;
+END
+\$\$;
+
 GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};
 EOF
+
 
 echo ""
 echo "✅ PostgreSQL user and database created."
