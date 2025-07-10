@@ -634,23 +634,31 @@ def add_tenant(unit_id):
             # Get form data
             name = request.form['name']
             phone = request.form['phone']
-            email = request.form.get('email')
+            email = request.form['email']  # Now required for login
             id_number = request.form.get('id_number')
             emergency_contact = request.form.get('emergency_contact')
             occupation = request.form.get('occupation')
             employer = request.form.get('employer')
             move_in_date = request.form.get('move_in_date')
             
+            # Validate email is provided
+            if not email:
+                flash('Email address is required for tenant login.', 'error')
+                return redirect(url_for('main.add_tenant', unit_id=unit_id))
+            
+            # Check if email is already in use
+            existing_tenant = Tenant.query.filter_by(email=email).first()
+            if existing_tenant:
+                flash('A tenant with this email address already exists.', 'error')
+                return redirect(url_for('main.add_tenant', unit_id=unit_id))
+            
             # Create new tenant
             tenant = Tenant(
                 name=name,
                 phone=phone,
+                email=email,
                 unit_id=unit_id
             )
-            
-            # Add optional fields if provided
-            if email:
-                tenant.email = email
             if id_number:
                 tenant.id_number = id_number
             if emergency_contact:
@@ -937,7 +945,16 @@ def update_tenant(tenant_id):
         try:
             tenant.name = request.form['name']
             tenant.phone = request.form['phone']
-            tenant.email = request.form.get('email')
+            new_email = request.form.get('email')
+            
+            # Check if email is being changed and if it's already in use
+            if new_email and new_email != tenant.email:
+                existing_tenant = Tenant.query.filter_by(email=new_email).first()
+                if existing_tenant and existing_tenant.id != tenant.id:
+                    flash('A tenant with this email address already exists.', 'error')
+                    return render_template('update_tenant.html', tenant=tenant)
+                tenant.email = new_email
+            
             tenant.id_number = request.form.get('id_number')
             tenant.emergency_contact = request.form.get('emergency_contact')
             tenant.occupation = request.form.get('occupation')
@@ -1030,10 +1047,10 @@ def chatbot_api():
 @main.route('/tenant_login', methods=['GET', 'POST'])
 def tenant_login():
     if request.method == 'POST':
-        phone = request.form['phone']
-        tenant = Tenant.query.filter_by(phone=phone).first()
+        email = request.form['email']
+        tenant = Tenant.query.filter_by(email=email).first()
         if not tenant:
-            flash('No tenant found with that phone number.', 'danger')
+            flash('No tenant found with that email address.', 'danger')
             return render_template('tenant_login.html')
         code = str(random.randint(100000, 999999))
         tenant.login_code = code
@@ -1044,27 +1061,27 @@ def tenant_login():
         print(f"\n{'='*50}")
         print(f"TENANT LOGIN CODE GENERATED")
         print(f"{'='*50}")
-        print(f"Phone: {phone}")
+        print(f"Email: {email}")
         print(f"Tenant: {tenant.name}")
         print(f"Login Code: {code}")
         print(f"Expires: {tenant.login_code_expiry.strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"{'='*50}\n")
         
-        # Send code via SMS (mock)
+        # Send code via email (mock)
         send_sms(
-            phone, f'Your SmartBiller login code is: {code}. It expires in 10 minutes.')
-        session['tenant_phone'] = phone
-        flash(f'A login code has been sent to {phone}.', 'info')
+            tenant.phone, f'Your SmartBiller login code is: {code}. It expires in 10 minutes.')
+        session['tenant_email'] = email
+        flash(f'A login code has been sent to {email}.', 'info')
         return redirect(url_for('main.tenant_verify'))
     return render_template('tenant_login.html')
 
 
 @main.route('/tenant_verify', methods=['GET', 'POST'])
 def tenant_verify():
-    phone = session.get('tenant_phone')
-    if not phone:
+    email = session.get('tenant_email')
+    if not email:
         return redirect(url_for('main.tenant_login'))
-    tenant = Tenant.query.filter_by(phone=phone).first()
+    tenant = Tenant.query.filter_by(email=email).first()
     if request.method == 'POST':
         code = request.form['code']
         
@@ -1072,7 +1089,7 @@ def tenant_verify():
         print(f"\n{'='*50}")
         print(f"TENANT LOGIN VERIFICATION ATTEMPT")
         print(f"{'='*50}")
-        print(f"Phone: {phone}")
+        print(f"Email: {email}")
         print(f"Tenant: {tenant.name if tenant else 'Unknown'}")
         print(f"Attempted Code: {code}")
         if tenant:
@@ -1090,7 +1107,7 @@ def tenant_verify():
             print(f"✅ LOGIN SUCCESSFUL for {tenant.name}")
             return redirect(url_for('main.tenant_dashboard'))
         else:
-            print(f"❌ LOGIN FAILED for {phone}")
+            print(f"❌ LOGIN FAILED for {email}")
             flash('Invalid or expired code.', 'danger')
     return render_template('tenant_verify.html')
 
@@ -2124,6 +2141,7 @@ def debug_login_codes():
     
     for tenant in tenants_with_codes:
         print(f"Tenant: {tenant.name}")
+        print(f"Email: {tenant.email}")
         print(f"Phone: {tenant.phone}")
         print(f"Code: {tenant.login_code}")
         print(f"Expires: {tenant.login_code_expiry.strftime('%Y-%m-%d %H:%M:%S')}")
@@ -2138,6 +2156,7 @@ def debug_login_codes():
         'codes': [
             {
                 'tenant_name': tenant.name,
+                'email': tenant.email,
                 'phone': tenant.phone,
                 'code': tenant.login_code,
                 'expires': tenant.login_code_expiry.strftime('%Y-%m-%d %H:%M:%S'),

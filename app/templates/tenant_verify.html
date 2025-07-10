@@ -11,7 +11,7 @@
         <i class="fas fa-shield-alt text-2xl text-white"></i>
       </div>
       <h2 class="text-3xl font-bold text-gray-900 mb-2">Verify Your Code</h2>
-      <p class="text-gray-600">Enter the 6-digit code sent to your phone</p>
+      <p class="text-gray-600">Enter the 6-digit code sent to your email</p>
     </div>
 
     <!-- Verification Form -->
@@ -27,68 +27,54 @@
               class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center text-2xl font-mono tracking-widest"
               placeholder="000000" autocomplete="one-time-code">
             <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
-              <i class="fas fa-mobile-alt text-gray-400"></i>
+              <i class="fas fa-envelope text-gray-400"></i>
             </div>
           </div>
           <p class="mt-2 text-sm text-gray-500">
-            Enter the 6-digit code sent to your phone number
+            Enter the 6-digit code sent to your email address
           </p>
         </div>
 
         <!-- Submit Button -->
-        <button type="submit"
-          class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105">
-          <i class="fas fa-check mr-2"></i>Verify Code
-        </button>
+        <div>
+          <button type="submit"
+            class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 shadow-lg">
+            <i class="fas fa-check mr-2"></i>Verify Code
+          </button>
+        </div>
       </form>
 
-      <!-- Resend Code -->
+      <!-- Back to Login -->
       <div class="mt-6 text-center">
-        <p class="text-sm text-gray-600 mb-3">Didn't receive the code?</p>
-        <a href="{{ url_for('main.tenant_login') }}" class="text-blue-600 hover:text-blue-800 font-medium text-sm">
-          <i class="fas fa-redo mr-1"></i>Resend Code
-        </a>
+        <p class="text-gray-600">
+          Didn't receive the code?
+          <a href="{{ url_for('main.tenant_login') }}"
+            class="text-blue-600 font-semibold hover:text-blue-700 transition-colors duration-200">
+            Try again
+          </a>
+        </p>
       </div>
     </div>
 
-    <!-- Help Section -->
-    <div class="bg-blue-50 rounded-xl p-4 border border-blue-200">
-      <div class="flex items-start">
-        <div class="flex-shrink-0">
-          <i class="fas fa-info-circle text-blue-600 mt-1"></i>
-        </div>
-        <div class="ml-3">
-          <h3 class="text-sm font-medium text-blue-800">Need Help?</h3>
-          <p class="text-sm text-blue-700 mt-1">
-            The verification code expires in 10 minutes. If you don't receive it,
-            try requesting a new one.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Back to Login -->
+    <!-- Footer -->
     <div class="text-center">
-      <a href="{{ url_for('main.tenant_login') }}" class="text-gray-600 hover:text-gray-800 font-medium text-sm">
-        <i class="fas fa-arrow-left mr-1"></i>Back to Login
-      </a>
+      <p class="text-gray-500 text-sm">
+        &copy; 2025 SmartBiller. Built with <span class="text-red-400">💙</span> by
+        <a href="https://techelar.co.ke" class="text-blue-600 hover:text-blue-700">TechElar</a>
+      </p>
     </div>
   </div>
 </div>
 
-<!-- Flash Messages -->
-{% with messages = get_flashed_messages(with_categories=true) %}
-{% if messages %}
-<div class="fixed top-4 right-4 z-50 space-y-2">
-  {% for category, message in messages %}
-  <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg max-w-sm">
-    <div class="flex items-center">
-      <i class="fas fa-exclamation-circle mr-2"></i>
-      <span class="text-sm font-medium">{{ message }}</span>
-    </div>
-  </div>
-  {% endfor %}
-</div>
-{% endif %}
-{% endwith %}
+<script>
+  // Auto-focus on code input
+  document.getElementById('code').focus();
+
+  // Auto-advance to next input (if we had multiple inputs)
+  document.getElementById('code').addEventListener('input', function (e) {
+    if (e.target.value.length === 6) {
+      e.target.form.submit();
+    }
+  });
+</script>
 {% endblock %}

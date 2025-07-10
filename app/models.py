@@ -132,7 +132,7 @@ class Tenant(db.Model):
     unit_id = db.Column(db.Integer, db.ForeignKey('unit.id'), nullable=False)
     
     # Additional tenant information
-    email = db.Column(db.String(120))
+    email = db.Column(db.String(120), unique=True, nullable=False)  # Now required and unique for login
     id_number = db.Column(db.String(20))
     emergency_contact = db.Column(db.String(200))
     occupation = db.Column(db.String(100))
