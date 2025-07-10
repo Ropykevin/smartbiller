@@ -1048,10 +1048,22 @@ def chatbot_api():
 def tenant_login():
     if request.method == 'POST':
         email = request.form['email']
+        
+        # Validate email format
+        if not email or '@' not in email:
+            flash('Please enter a valid email address.', 'error')
+            return render_template('tenant_login.html')
+        
         tenant = Tenant.query.filter_by(email=email).first()
         if not tenant:
-            flash('No tenant found with that email address.', 'danger')
+            flash('No tenant found with that email address. Please check your email or contact your landlord.', 'danger')
             return render_template('tenant_login.html')
+        
+        # Check if tenant has a valid unit
+        if not tenant.unit:
+            flash('Your account is not associated with any unit. Please contact your landlord.', 'error')
+            return render_template('tenant_login.html')
+        
         code = str(random.randint(100000, 999999))
         tenant.login_code = code
         tenant.login_code_expiry = datetime.utcnow() + timedelta(minutes=10)
@@ -1063,15 +1075,16 @@ def tenant_login():
         print(f"{'='*50}")
         print(f"Email: {email}")
         print(f"Tenant: {tenant.name}")
+        print(f"Unit: {tenant.unit.unit_number if tenant.unit else 'No unit'}")
         print(f"Login Code: {code}")
         print(f"Expires: {tenant.login_code_expiry.strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"{'='*50}\n")
         
-        # Send code via email (mock)
+        # Send code via SMS (mock)
         send_sms(
             tenant.phone, f'Your SmartBiller login code is: {code}. It expires in 10 minutes.')
         session['tenant_email'] = email
-        flash(f'A login code has been sent to {email}.', 'info')
+        flash(f'Login code sent to {email}. Please check your email and enter the 6-digit code.', 'success')
         return redirect(url_for('main.tenant_verify'))
     return render_template('tenant_login.html')
 
@@ -1105,10 +1118,18 @@ def tenant_verify():
         if tenant and tenant.login_code == code and tenant.login_code_expiry > datetime.utcnow():
             session['tenant_id'] = tenant.id
             print(f"✅ LOGIN SUCCESSFUL for {tenant.name}")
+            flash(f'Welcome back, {tenant.name}!', 'success')
             return redirect(url_for('main.tenant_dashboard'))
         else:
             print(f"❌ LOGIN FAILED for {email}")
-            flash('Invalid or expired code.', 'danger')
+            if not tenant:
+                flash('Invalid email address. Please try logging in again.', 'danger')
+            elif tenant.login_code != code:
+                flash('Invalid verification code. Please check the code and try again.', 'danger')
+            elif tenant.login_code_expiry <= datetime.utcnow():
+                flash('Verification code has expired. Please request a new code.', 'warning')
+            else:
+                flash('Invalid or expired code. Please try again.', 'danger')
     return render_template('tenant_verify.html')
 
 

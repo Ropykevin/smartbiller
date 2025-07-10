@@ -17,11 +17,60 @@
       background: rgba(255, 255, 255, 0.1);
       border: 1px solid rgba(255, 255, 255, 0.2);
     }
+
+    .flash-message {
+      animation: slideInDown 0.5s ease-out;
+    }
+
+    @keyframes slideInDown {
+      from {
+        transform: translateY(-100%);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
   </style>
 </head>
 
 <body class="min-h-screen gradient-bg flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
   <div class="max-w-md w-full space-y-8">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="space-y-3">
+      {% for category, message in messages %}
+      <div class="flash-message rounded-lg p-4 shadow-lg border-l-4 
+        {% if category == 'error' or category == 'danger' %}
+          bg-red-50 border-red-400 text-red-800
+        {% elif category == 'success' %}
+          bg-green-50 border-green-400 text-green-800
+        {% elif category == 'warning' %}
+          bg-yellow-50 border-yellow-400 text-yellow-800
+        {% elif category == 'info' %}
+          bg-blue-50 border-blue-400 text-blue-800
+        {% else %}
+          bg-gray-50 border-gray-400 text-gray-800
+        {% endif %}">
+        <div class="flex items-center">
+          <i class="fas 
+            {% if category == 'error' or category == 'danger' %}fa-exclamation-circle
+            {% elif category == 'success' %}fa-check-circle
+            {% elif category == 'warning' %}fa-exclamation-triangle
+            {% elif category == 'info' %}fa-info-circle
+            {% else %}fa-info-circle{% endif %} 
+            mr-3 text-lg"></i>
+          <span class="font-medium">{{ message }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
     <div class="text-center">
       <div class="mx-auto h-16 w-16 bg-white rounded-full flex items-center justify-center mb-4">
         <i class="fas fa-user text-3xl text-blue-600"></i>
@@ -67,6 +116,32 @@
       </p>
     </div>
   </div>
+
+  <script>
+    // Auto-hide flash messages after 5 seconds
+    setTimeout(function () {
+      const flashMessages = document.querySelectorAll('.flash-message');
+      flashMessages.forEach(function (message) {
+        message.style.animation = 'slideOutUp 0.5s ease-in forwards';
+      });
+    }, 5000);
+
+    // Add slideOutUp animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideOutUp {
+        from {
+          transform: translateY(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateY(-100%);
+          opacity: 0;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
 </body>
 
 </html>
