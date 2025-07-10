@@ -1,6 +1,4 @@
 #!/bin/bash
-
-# Exit immediately on any error
 set -e
 
 # === Configuration Variables ===
@@ -12,7 +10,7 @@ PORT="5432"
 DOMAIN="smartbiller.co.ke"
 EMAIL="admin@${DOMAIN}"
 
-PROJECT_DIR="/home/administrator/smartbiller"   # ✅ Adjust if needed
+PROJECT_DIR="/home/administrator/smartbiller"
 VENV_PATH="${PROJECT_DIR}/venv/bin/activate"
 FLASK_CLI_APP="${PROJECT_DIR}/manage.py"
 NGINX_CONF_PATH="/etc/nginx/sites-available/${DOMAIN}"
@@ -20,41 +18,36 @@ NGINX_CONF_PATH="/etc/nginx/sites-available/${DOMAIN}"
 # === PostgreSQL Setup ===
 echo "Creating PostgreSQL database and user..."
 
-sudo -i -u postgres psql <<EOF
--- Create user if not exists
-DO \$\$
+sudo -u postgres psql -v ON_ERROR_STOP=1 <<'EOFSQL'
+DO $$
 BEGIN
    IF NOT EXISTS (
-      SELECT FROM pg_catalog.pg_roles WHERE rolname = '${DB_USER}'
+      SELECT FROM pg_catalog.pg_roles WHERE rolname = 'smartbiller'
    ) THEN
-      CREATE ROLE ${DB_USER} LOGIN PASSWORD '${DB_PASSWORD}';
+      CREATE ROLE smartbiller LOGIN PASSWORD 'smartbiller254!';
    END IF;
 END
-\$\$;
+$$;
 
--- Create database if not exists
-DO \$\$
+DO $$
 BEGIN
    IF NOT EXISTS (
-      SELECT FROM pg_database WHERE datname = '${DB_NAME}'
+      SELECT FROM pg_database WHERE datname = 'smartbiller'
    ) THEN
-      CREATE DATABASE ${DB_NAME} OWNER ${DB_USER};
+      CREATE DATABASE smartbiller OWNER smartbiller;
    END IF;
 END
-\$\$;
+$$;
 
-GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};
-EOF
+GRANT ALL PRIVILEGES ON DATABASE smartbiller TO smartbiller;
+EOFSQL
 
-echo ""
 echo "✅ PostgreSQL user and database created."
 echo "🔑 Password: ${DB_PASSWORD}"
 echo "🔗 URL: postgresql://${DB_USER}:${DB_PASSWORD}@${HOST}:${PORT}/${DB_NAME}"
 
 # === Nginx Setup ===
 echo "Setting up Nginx for domain ${DOMAIN}..."
-sudo chmod -R 775 /etc/nginx/sites-available
-
 sudo bash -c "cat > ${NGINX_CONF_PATH}" <<EOL
 server {
     listen 80;
@@ -70,11 +63,9 @@ server {
 EOL
 
 sudo ln -sf ${NGINX_CONF_PATH} /etc/nginx/sites-enabled/
-
-echo "Reloading Nginx..."
 sudo nginx -t && sudo systemctl reload nginx
 
-# === Flask-Migrate Database Migrations ===
+# === Flask Migrations ===
 echo "Running Flask-Migrate database migrations..."
 
 source "${VENV_PATH}"
@@ -91,7 +82,7 @@ else
     exit 1
 fi
 
-# === SSL Certificate via Certbot ===
+# === SSL Certificate ===
 echo "Installing Let's Encrypt SSL certificate..."
 sudo apt update
 sudo apt install -y certbot python3-certbot-nginx
