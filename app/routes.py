@@ -109,10 +109,15 @@ def login():
 def logout():
     if 'landlord_id' in session:
         flash('You have been logged out successfully.', 'success')
-    session.pop('landlord_id', None)
-    session.pop('tenant_id', None)
-    session.pop('tenant_phone', None)
-    return redirect(url_for('main.login'))
+        session.pop('landlord_id', None)
+        return redirect(url_for('main.login'))
+    elif 'tenant_id' in session:
+        flash('You have been logged out successfully.', 'success')
+        session.pop('tenant_id', None)
+        session.pop('tenant_email', None)
+        return redirect(url_for('main.tenant_login'))
+    else:
+        return redirect(url_for('main.index'))
 
 
 @main.route('/dashboard', methods=['GET', 'POST'])
