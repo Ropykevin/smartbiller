@@ -27,7 +27,7 @@ email=user@example.com&password=password123
 POST /register
 Content-Type: application/x-www-form-urlencoded
 
-name=John Doe&email=john@example.com&password=password123
+name=Ropy Kevin&email=john@example.com&password=password123
 ```
 
 ## Landlord Endpoints
@@ -44,7 +44,7 @@ GET /dashboard
 {
   "landlord": {
     "id": 1,
-    "name": "John Doe",
+    "name": "Ropy Kevin",
     "email": "john@example.com"
   },
   "properties": [
@@ -133,7 +133,7 @@ POST /unit/1/delete
 POST /unit/1/add_tenant
 Content-Type: application/x-www-form-urlencoded
 
-name=Jane Smith&phone=254700000001&email=jane@example.com&id_number=12345678&emergency_contact=254700000002&occupation=Engineer&employer=Tech Corp&move_in_date=2024-01-01
+name=Ivy Maundu&phone=254700000001&email=jane@example.com&id_number=12345678&emergency_contact=254700000002&occupation=Engineer&employer=Tech Corp&move_in_date=2024-01-01
 ```
 
 #### Log Rent Payment
@@ -149,7 +149,7 @@ amount_paid=25000&date_paid=2024-01-15&month_paid_for=January 2024&status=Paid
 POST /tenant/1/update
 Content-Type: application/x-www-form-urlencoded
 
-name=Jane Smith&phone=254700000001&email=jane@example.com&emergency_contact=254700000002
+name=Ivy Maundu&phone=254700000001&email=jane@example.com&emergency_contact=254700000002
 ```
 
 ### Exit Notice Management
@@ -188,7 +188,7 @@ GET /upgrade_plan/professional
 POST /process_payment
 Content-Type: application/x-www-form-urlencoded
 
-plan_code=professional&billing_cycle=monthly&card_number=4111111111111111&expiry_month=12&expiry_year=2025&cvv=123&cardholder_name=John Doe
+plan_code=professional&billing_cycle=monthly&card_number=4111111111111111&expiry_month=12&expiry_year=2025&cvv=123&cardholder_name=Ropy Kevin
 ```
 
 **Response:**
@@ -265,7 +265,7 @@ GET /tenant_dashboard
 {
   "tenant": {
     "id": 1,
-    "name": "Jane Smith",
+    "name": "Ivy Maundu",
     "phone": "254700000001",
     "unit": {
       "id": 1,

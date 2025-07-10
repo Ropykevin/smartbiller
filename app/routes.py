@@ -1498,7 +1498,7 @@ def tenant_receipt(rentlog_id):
     p.drawCentredString(width / 2, footer_y - 70, "Powered by SmartBiller")
     p.setFont("Helvetica", 9)
     p.setFillColor(HexColor("#6B7280"))
-    p.drawCentredString(width / 2, footer_y - 85, "https://smartbiller.co.ke • Contact: +254 700 000 000")
+    p.drawCentredString(width / 2, footer_y - 85, "https://smartbiller.co.ke • Contact: +254 788 963 983")
 
     # Finalize
     p.showPage()
