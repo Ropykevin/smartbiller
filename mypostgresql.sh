@@ -53,6 +53,9 @@ EOF
 echo "✅ PostgreSQL user and database setup complete"
 
 # === Build and start Docker containers ===
+echo "🧹 Cleaning up old containers..."
+${DOCKER_COMPOSE} down
+
 echo "🐳 Starting Docker containers..."
 ${DOCKER_COMPOSE} up -d --build
 
