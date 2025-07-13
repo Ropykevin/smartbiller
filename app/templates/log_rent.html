@@ -272,8 +272,7 @@
     // Payment preview functionality
     document.getElementById('amount_paid').addEventListener('input', function () {
         const amountPaid = parseFloat(this.value) || 0;
-        const monthlyRent = {{ tenant.unit.rent_amount }
-    };
+        const monthlyRent = {{ tenant.unit.rent_amount }};
     const additionalCharges = {{ additional_charges }};
     const amountDueForMonth = {{ amount_due_for_month }};
     const creditAvailable = {{ credit_available }};
