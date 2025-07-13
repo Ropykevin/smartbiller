@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+
+{% block page_title %}Log Rent Payment{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">Log Rent Payment</h1>
+                <p class="text-gray-600">Record rent payment for {{ tenant.name }} - {{ tenant.unit.unit_number }}</p>
+            </div>
+            <a href="{{ url_for('main.dashboard') }}"
+                class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors duration-200">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+        <!-- Tenant Info Card -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+            <h3 class="text-lg font-semibold text-blue-900 mb-4">
+                <i class="fas fa-user mr-2"></i>Tenant Information
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-sm text-blue-700 font-medium">Name</p>
+                    <p class="text-blue-900">{{ tenant.name }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-blue-700 font-medium">Phone</p>
+                    <p class="text-blue-900">{{ tenant.phone }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-blue-700 font-medium">Unit</p>
+                    <p class="text-blue-900">{{ tenant.unit.unit_number }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-blue-700 font-medium">Monthly Rent</p>
+                    <p class="text-blue-900 font-semibold">KES {{ "%.2f"|format(tenant.unit.rent_amount) }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Balance Information -->
+        <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                <i class="fas fa-calculator mr-2"></i>Payment Summary
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="text-center">
+                    <p class="text-sm text-gray-600 font-medium">Current Month Balance</p>
+                    <p
+                        class="text-2xl font-bold {% if current_month_balance > 0 %}text-red-600{% else %}text-green-600{% endif %}">
+                        KES {{ "%.2f"|format(current_month_balance) }}
+                    </p>
+                    <p class="text-xs text-gray-500 mt-1">
+                        {% if current_month_balance > 0 %}
+                        <i class="fas fa-exclamation-triangle mr-1"></i>Outstanding
+                        {% else %}
+                        <i class="fas fa-check-circle mr-1"></i>Paid
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="text-center">
+                    <p class="text-sm text-gray-600 font-medium">Total Paid</p>
+                    <p class="text-2xl font-bold text-green-600">
+                        KES {{ "%.2f"|format(total_paid) }}
+                    </p>
+                    <p class="text-xs text-gray-500 mt-1">All time</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-sm text-gray-600 font-medium">Monthly Rent</p>
+                    <p class="text-2xl font-bold text-blue-600">
+                        KES {{ "%.2f"|format(tenant.unit.rent_amount) }}
+                    </p>
+                    <p class="text-xs text-gray-500 mt-1">Base rent</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-sm text-gray-600 font-medium">Overall Balance</p>
+                    <p
+                        class="text-2xl font-bold {% if overall_balance > 0 %}text-red-600{% elif overall_balance < 0 %}text-blue-600{% else %}text-green-600{% endif %}">
+                        KES {{ "%.2f"|format(overall_balance) }}
+                    </p>
+                    <p class="text-xs text-gray-500 mt-1">
+                        {% if overall_balance > 0 %}
+                        <i class="fas fa-exclamation-triangle mr-1"></i>Owed
+                        {% elif overall_balance < 0 %} <i class="fas fa-arrow-up mr-1"></i>Credit
+                            {% else %}
+                            <i class="fas fa-check-circle mr-1"></i>Balanced
+                            {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Additional Charges Breakdown -->
+            {% if additional_charges > 0 %}
+            <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <h4 class="font-semibold text-yellow-900 mb-3">
+                    <i class="fas fa-plus-circle mr-2"></i>Additional Charges for Current Month
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="text-center">
+                        <p class="text-sm text-yellow-700 font-medium">Additional Charges</p>
+                        <p class="text-xl font-bold text-yellow-800">
+                            KES {{ "%.2f"|format(additional_charges) }}
+                        </p>
+                        <p class="text-xs text-yellow-600 mt-1">Water, electricity, etc.</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-sm text-yellow-700 font-medium">Total Due This Month</p>
+                        <p class="text-xl font-bold text-yellow-900">
+                            KES {{ "%.2f"|format(amount_due_for_month) }}
+                        </p>
+                        <p class="text-xs text-yellow-600 mt-1">Rent + charges</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Installment Information -->
+            {% if current_month_balance < amount_due_for_month and current_month_balance> 0 %}
+                <div class="mt-4 p-4 bg-orange-100 rounded-lg">
+                    <h4 class="font-semibold text-orange-900 mb-2">
+                        <i class="fas fa-clock mr-2"></i>Installment Payment Available
+                    </h4>
+                    <div class="text-sm text-orange-800">
+                        <p class="mb-2">This tenant has already made a partial payment for the current month. You can
+                            log additional installments to clear the remaining balance of <strong>KES {{
+                                "%.2f"|format(current_month_balance) }}</strong>.</p>
+                        <p class="text-xs text-orange-600">Each installment will be added to the existing payment for
+                            this month.</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Payment Calculation Info -->
+                <div class="mt-4 p-4 bg-blue-100 rounded-lg">
+                    <h4 class="font-semibold text-blue-900 mb-2">
+                        <i class="fas fa-info-circle mr-2"></i>Payment Calculation
+                    </h4>
+                    <ul class="text-sm text-blue-800 space-y-1">
+                        <li>• If payment equals total due (rent + charges): Applied to selected month</li>
+                        <li>• If payment exceeds total due: Excess applied to next month</li>
+                        <li>• If payment is less than total due: Partial payment recorded</li>
+                        <li>• <strong>Installments allowed:</strong> Multiple payments for the same month</li>
+                        <li>• Previous overpayments are automatically applied to outstanding balances</li>
+                        {% if additional_charges > 0 %}
+                        <li>• <strong>Additional charges included:</strong> Water, electricity, and other fees</li>
+                        {% endif %}
+                    </ul>
+                </div>
+        </div>
+
+        <form method="POST" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div>
+                    <label for="amount_paid" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-money-bill-wave mr-2 text-green-600"></i>Amount Paid (KES)
+                    </label>
+                    <input type="number" id="amount_paid" name="amount_paid" step="0.01" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Enter amount paid" min="0">
+                    <p class="mt-1 text-sm text-gray-500">Enter the exact amount received</p>
+                </div>
+
+                <div>
+                    <label for="date_paid" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-calendar mr-2 text-blue-600"></i>Date Paid
+                    </label>
+                    <input type="date" id="date_paid" name="date_paid" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        value="{{ today_date }}">
+                    <p class="mt-1 text-sm text-gray-500">When the payment was received</p>
+                </div>
+
+                <div>
+                    <label for="month_paid_for" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-calendar-alt mr-2 text-purple-600"></i>Month Paid For
+                    </label>
+                    <select id="month_paid_for" name="month_paid_for" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Select month</option>
+                        <option value="January 2025">January 2025</option>
+                        <option value="February 2025">February 2025</option>
+                        <option value="March 2025">March 2025</option>
+                        <option value="April 2025">April 2025</option>
+                        <option value="May 2025">May 2025</option>
+                        <option value="June 2025">June 2025</option>
+                        <option value="July 2025">July 2025</option>
+                        <option value="August 2025">August 2025</option>
+                        <option value="September 2025">September 2025</option>
+                        <option value="October 2025">October 2025</option>
+                        <option value="November 2025">November 2025</option>
+                        <option value="December 2025">December 2025</option>
+                    </select>
+                    <p class="mt-1 text-sm text-gray-500">Which month this payment covers</p>
+                </div>
+
+                <!-- Payment attribution info -->
+                <div class="col-span-full">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div class="flex items-center">
+                            <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                            <span class="text-sm font-medium text-blue-800">
+                                {% if session.get('employee_id') %}
+                                Logging as: <strong>{{ session.get('employee_name') }}</strong> ({{
+                                session.get('employee_position') }})
+                                {% else %}
+                                Logging as: <strong>Landlord</strong>
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Notes -->
+                <div class="col-span-full">
+                    <label for="payment_notes" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-sticky-note mr-2 text-purple-600"></i>Payment Notes (Optional)
+                    </label>
+                    <textarea id="payment_notes" name="payment_notes" rows="3"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Add any notes about this payment (e.g., payment method, reason for partial payment, etc.)"></textarea>
+                    <p class="mt-1 text-sm text-gray-500">Optional notes to track payment details, reasons, or special
+                        circumstances</p>
+                </div>
+            </div>
+
+            <!-- Payment Preview -->
+            <div id="payment-preview" class="hidden bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <h4 class="font-semibold text-yellow-900 mb-2">
+                    <i class="fas fa-eye mr-2"></i>Payment Preview
+                </h4>
+                <div id="preview-content" class="text-sm text-yellow-800"></div>
+            </div>
+
+            <!-- Credit Information -->
+            {% if overall_balance < 0 %} <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <h4 class="font-semibold text-blue-900 mb-2">
+                    <i class="fas fa-credit-card mr-2"></i>Credit Available
+                </h4>
+                <div class="text-sm text-blue-800">
+                    <p class="mb-2">This tenant has a credit balance of <strong>KES {{ "%.2f"|format(credit_available)
+                            }}</strong> that will be automatically applied to this payment.</p>
+                    <p class="text-xs text-blue-600">The credit will be used to cover any outstanding amounts for the
+                        selected month.</p>
+                </div>
+    </div>
+    {% endif %}
+
+    <div class="flex justify-end space-x-4 pt-6">
+        <a href="{{ url_for('main.dashboard') }}"
+            class="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors duration-200">
+            <i class="fas fa-arrow-left mr-2"></i>Cancel
+        </a>
+        <button type="submit"
+            class="px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl font-semibold hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200">
+            <i class="fas fa-save mr-2"></i>Log Payment
+        </button>
+    </div>
+    </form>
+</div>
+</div>
+
+<script>
+    // Set today's date as default
+    document.getElementById('date_paid').value = new Date().toISOString().split('T')[0];
+
+    // Payment preview functionality
+    document.getElementById('amount_paid').addEventListener('input', function () {
+        const amountPaid = parseFloat(this.value) || 0;
+        const monthlyRent = {{ tenant.unit.rent_amount }
+    };
+    const additionalCharges = {{ additional_charges }};
+    const amountDueForMonth = {{ amount_due_for_month }};
+    const creditAvailable = {{ credit_available }};
+    const currentMonthBalance = {{ current_month_balance }};
+    const preview = document.getElementById('payment-preview');
+    const previewContent = document.getElementById('preview-content');
+
+    if (amountPaid > 0) {
+        let previewText = '';
+        const effectivePayment = amountPaid + creditAvailable;
+
+        // Check if this is an installment payment
+        const isInstallment = currentMonthBalance < amountDueForMonth && currentMonthBalance > 0;
+        const alreadyPaid = amountDueForMonth - currentMonthBalance;
+
+        if (isInstallment) {
+            // This is an installment payment
+            const newTotal = alreadyPaid + effectivePayment;
+            if (newTotal >= amountDueForMonth) {
+                const excess = newTotal - amountDueForMonth;
+                if (excess > 0) {
+                    previewText = `✅ Installment will complete payment for this month! (KES ${amountPaid.toLocaleString()} + KES ${creditAvailable.toLocaleString()} credit + KES ${alreadyPaid.toLocaleString()} already paid = KES ${newTotal.toLocaleString()}). Excess: KES ${excess.toLocaleString()}`;
+                } else {
+                    previewText = `✅ Installment will complete payment for this month! (KES ${amountPaid.toLocaleString()} + KES ${creditAvailable.toLocaleString()} credit + KES ${alreadyPaid.toLocaleString()} already paid = KES ${newTotal.toLocaleString()})`;
+                }
+            } else {
+                const remaining = amountDueForMonth - newTotal;
+                previewText = `📝 Installment payment. KES ${remaining.toLocaleString()} still due after this payment (KES ${amountPaid.toLocaleString()} + KES ${creditAvailable.toLocaleString()} credit + KES ${alreadyPaid.toLocaleString()} already paid)`;
+            }
+        } else if (creditAvailable > 0) {
+            // Regular payment with credit
+            if (effectivePayment >= amountDueForMonth) {
+                previewText = `✅ Full payment for selected month (KES ${amountPaid.toLocaleString()} payment + KES ${creditAvailable.toLocaleString()} credit = KES ${effectivePayment.toLocaleString()} total)`;
+            } else {
+                const remaining = amountDueForMonth - effectivePayment;
+                previewText = `⚠️ Partial payment. KES ${remaining.toLocaleString()} still due (KES ${amountPaid.toLocaleString()} payment + KES ${creditAvailable.toLocaleString()} credit applied)`;
+            }
+        } else {
+            // Regular payment without credit
+            if (amountPaid === amountDueForMonth) {
+                previewText = `✅ Full payment for selected month`;
+            } else if (amountPaid > amountDueForMonth) {
+                const excess = amountPaid - amountDueForMonth;
+                previewText = `✅ Full payment for selected month + KES ${excess.toLocaleString()} excess (will be applied to next month)`;
+            } else {
+                const remaining = amountDueForMonth - amountPaid;
+                previewText = `⚠️ Partial payment. KES ${remaining.toLocaleString()} still due for selected month`;
+            }
+        }
+
+        previewContent.innerHTML = previewText;
+        preview.classList.remove('hidden');
+    } else {
+        preview.classList.add('hidden');
+    }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block dashboard_content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">Send Notice</h1>
+                <p class="text-gray-600">Send SMS notifications to tenants</p>
+            </div>
+            <a href="{{ url_for('main.dashboard') }}"
+                class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors duration-200">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Notice Form -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
+            <h2 class="text-xl font-bold text-white">
+                <i class="fas fa-bell mr-2"></i>Create Notice
+            </h2>
+        </div>
+
+        <form method="POST" class="p-6 space-y-6">
+            <!-- Property Selection -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="property_id" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-building mr-2 text-blue-600"></i>Property
+                    </label>
+                    <select id="property_id" name="property_id" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Select a property</option>
+                        {% for property in properties %}
+                        <option value="{{ property.id }}">{{ property.name }} - {{ property.location }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label for="tenant_id" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-user mr-2 text-green-600"></i>Tenant
+                    </label>
+                    <select id="tenant_id" name="tenant_id" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Select a tenant</option>
+                        {% for tenant in tenants %}
+                        <option value="{{ tenant.id }}">{{ tenant.name }} ({{ tenant.unit.unit_number }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Subject -->
+            <div>
+                <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-tag mr-2 text-purple-600"></i>Subject (Optional)
+                </label>
+                <input type="text" id="subject" name="subject"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g., Rent Reminder, Maintenance Notice">
+            </div>
+
+            <!-- Message -->
+            <div>
+                <label for="message" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-comment mr-2 text-orange-600"></i>Message
+                </label>
+                <textarea id="message" name="message" rows="6" required
+                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                    placeholder="Enter your message here..."></textarea>
+                <p class="mt-2 text-sm text-gray-500">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Available placeholders: {{ tenant_name }}, {{ unit_number }}, {{ property_name }}, {{ due_date }}
+                </p>
+            </div>
+
+            <!-- Due Date -->
+            <div>
+                <label for="due_date" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-calendar mr-2 text-red-600"></i>Due Date (Optional)
+                </label>
+                <input type="date" id="due_date" name="due_date"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <!-- Submit Button -->
+            <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+                <a href="{{ url_for('main.dashboard') }}"
+                    class="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors duration-200">
+                    <i class="fas fa-arrow-left mr-2"></i>Cancel
+                </a>
+                <button type="submit"
+                    class="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200">
+                    <i class="fas fa-paper-plane mr-2"></i>Send Notice
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Message Templates -->
+    <div class="mt-8 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-green-600 to-blue-600 px-6 py-4">
+            <h3 class="text-xl font-bold text-white">
+                <i class="fas fa-lightbulb mr-2"></i>Message Templates
+            </h3>
+        </div>
+
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Rent Reminder Template -->
+                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
+                    <h4 class="font-semibold text-gray-900 mb-2">
+                        <i class="fas fa-money-bill-wave text-green-600 mr-2"></i>Rent Reminder
+                    </h4>
+                    <p class="text-sm text-gray-600 mb-3">
+                        Dear {{ tenant_name }}, your rent for {{ month }} is due on {{ due_date }}.
+                        Amount: KES {{ amount }}. Please pay to avoid late fees.
+                    </p>
+                    <button onclick="useTemplate(this)" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                        <i class="fas fa-copy mr-1"></i>Use Template
+                    </button>
+                </div>
+
+                <!-- Maintenance Notice Template -->
+                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
+                    <h4 class="font-semibold text-gray-900 mb-2">
+                        <i class="fas fa-tools text-orange-600 mr-2"></i>Maintenance Notice
+                    </h4>
+                    <p class="text-sm text-gray-600 mb-3">
+                        Dear {{ tenant_name }}, maintenance work will be carried out in {{ unit_number }}
+                        on {{ due_date }}. Please ensure access is available.
+                    </p>
+                    <button onclick="useTemplate(this)" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                        <i class="fas fa-copy mr-1"></i>Use Template
+                    </button>
+                </div>
+
+                <!-- General Notice Template -->
+                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
+                    <h4 class="font-semibold text-gray-900 mb-2">
+                        <i class="fas fa-bullhorn text-purple-600 mr-2"></i>General Notice
+                    </h4>
+                    <p class="text-sm text-gray-600 mb-3">
+                        Dear {{ tenant_name }}, this is an important notice regarding {{ property_name }}.
+                        Please contact us for more information.
+                    </p>
+                    <button onclick="useTemplate(this)" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                        <i class="fas fa-copy mr-1"></i>Use Template
+                    </button>
+                </div>
+
+                <!-- Welcome Message Template -->
+                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
+                    <h4 class="font-semibold text-gray-900 mb-2">
+                        <i class="fas fa-handshake text-blue-600 mr-2"></i>Welcome Message
+                    </h4>
+                    <p class="text-sm text-gray-600 mb-3">
+                        Welcome {{ tenant_name }} to {{ unit_number }}! We're glad to have you as our tenant.
+                        Please don't hesitate to contact us for any assistance.
+                    </p>
+                    <button onclick="useTemplate(this)" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                        <i class="fas fa-copy mr-1"></i>Use Template
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function useTemplate(button) {
+        const template = button.parentElement.querySelector('p').textContent;
+        document.getElementById('message').value = template;
+
+        // Scroll to message field
+        document.getElementById('message').scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+        });
+
+        // Show feedback
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check mr-1"></i>Template Applied';
+        button.classList.add('text-green-600');
+
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.classList.remove('text-green-600');
+        }, 2000);
+    }
+</script>
+{% endblock %}

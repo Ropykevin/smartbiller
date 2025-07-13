@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block dashboard_content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">Manage Employees</h1>
+                <p class="text-gray-600">Manage your property management team</p>
+            </div>
+            <div class="flex space-x-3">
+                <a href="{{ url_for('main.add_employee') }}"
+                    class="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200">
+                    <i class="fas fa-plus mr-2"></i>Add Employee
+                </a>
+                <a href="{{ url_for('main.dashboard') }}"
+                    class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors duration-200">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employees List -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="bg-blue-600 px-6 py-4">
+            <h2 class="text-xl font-bold text-white">
+                <i class="fas fa-users mr-2"></i>Your Employees
+            </h2>
+        </div>
+
+        <div class="p-6">
+            <!-- Active Employees -->
+            {% if active_employees %}
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-user-check mr-2 text-green-600"></i>Active Employees
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-gray-200">
+                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Name</th>
+                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Email</th>
+                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Phone</th>
+                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Position</th>
+                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Added</th>
+                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for employee in active_employees %}
+                            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center">
+                                        <div
+                                            class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                                            <i class="fas fa-user text-green-600 text-sm"></i>
+                                        </div>
+                                        <span class="font-medium text-gray-900">{{ employee.name }}</span>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4 text-gray-600">{{ employee.email }}</td>
+                                <td class="py-3 px-4 text-gray-600">{{ employee.phone or 'N/A' }}</td>
+                                <td class="py-3 px-4">
+                                    <span
+                                        class="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                        {{ employee.position }}
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 text-gray-600 text-sm">
+                                    {{ employee.created_at.strftime('%Y-%m-%d') }}
+                                </td>
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center space-x-2">
+                                        <a href="{{ url_for('main.edit_employee', employee_id=employee.id) }}"
+                                            class="text-blue-600 hover:text-blue-800 font-medium text-sm">
+                                            <i class="fas fa-edit mr-1"></i>Edit
+                                        </a>
+                                        <button onclick="deleteEmployee({{ employee.id }}, '{{ employee.name }}')"
+                                            class="text-red-600 hover:text-red-800 font-medium text-sm">
+                                            <i class="fas fa-trash mr-1"></i>Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Inactive Employees -->
+            {% if inactive_employees %}
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-user-times mr-2 text-red-600"></i>Inactive Employees
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-gray-200">
+                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Name</th>
+                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Email</th>
+                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Phone</th>
+                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Position</th>
+                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Added</th>
+                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for employee in inactive_employees %}
+                            <tr class="border-b border-gray-100 hover:bg-gray-50 bg-gray-50">
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center">
+                                        <div
+                                            class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mr-3">
+                                            <i class="fas fa-user-times text-red-600 text-sm"></i>
+                                        </div>
+                                        <span class="font-medium text-gray-500">{{ employee.name }}</span>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4 text-gray-500">{{ employee.email }}</td>
+                                <td class="py-3 px-4 text-gray-500">{{ employee.phone or 'N/A' }}</td>
+                                <td class="py-3 px-4">
+                                    <span
+                                        class="bg-gray-100 text-gray-600 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                        {{ employee.position }}
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 text-gray-500 text-sm">
+                                    {{ employee.created_at.strftime('%Y-%m-%d') }}
+                                </td>
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center space-x-2">
+                                        <button onclick="activateEmployee({{ employee.id }}, '{{ employee.name }}')"
+                                            class="text-green-600 hover:text-green-800 font-medium text-sm">
+                                            <i class="fas fa-user-check mr-1"></i>Reactivate
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- No Employees Message -->
+            {% if not active_employees and not inactive_employees %}
+            <div class="text-center py-12">
+                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-users text-2xl text-gray-400"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">No Employees Yet</h3>
+                <p class="text-gray-600 mb-6">Add employees to help you manage rent payments and property operations.
+                </p>
+                <a href="{{ url_for('main.add_employee') }}"
+                    class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all duration-200">
+                    <i class="fas fa-plus mr-2"></i>Add Your First Employee
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Info Card -->
+    <div class="mt-8 bg-blue-50 rounded-xl p-6 border border-blue-200">
+        <div class="flex items-start">
+            <div class="flex-shrink-0">
+                <i class="fas fa-info-circle text-blue-600 mt-1"></i>
+            </div>
+            <div class="ml-3">
+                <h3 class="text-sm font-medium text-blue-800">How Employee Management Works</h3>
+                <div class="mt-2 text-sm text-blue-700 space-y-1">
+                    <p>• Employees can log rent payments on your behalf</p>
+                    <p>• Each payment will show who logged it</p>
+                    <p>• You can track which employee handled which transaction</p>
+                    <p>• Employees are restricted to your properties only</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function deleteEmployee(employeeId, employeeName) {
+        if (confirm(`Are you sure you want to deactivate ${employeeName}? They will no longer be able to log payments.`)) {
+            fetch(`/employees/${employeeId}/delete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while deleting the employee.');
+                });
+        }
+    }
+
+    function activateEmployee(employeeId, employeeName) {
+        if (confirm(`Are you sure you want to reactivate ${employeeName}? They will be able to log payments again and will receive a reactivation email.`)) {
+            fetch(`/employees/${employeeId}/activate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while activating the employee.');
+                });
+        }
+    }
+</script>
+{% endblock %}

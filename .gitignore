@@ -1,0 +1,102 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Flask
+instance/
+.webassets-cache
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Test files
+test_*.py
+*_test.py
+
+# Migration and setup scripts (one-time use)
+add_*.py
+setup_*.py
+check_*.py
+init_*.py
+fix_*.py
+migrate_*.py
+
+# Utility scripts (one-time use)
+check_duplicates.py
+create_exit_notice_table.py
+reset_db.py
+test_postgres.py
+test_db.py
+
+# Generated files
+app/static/invoices/*.pdf
+app/static/receipts/*.pdf
+app/static/exports/*.zip
+app/static/exports/*.csv
+
+# Backup files
+*.bak
+*.backup
+*~ 
+.gitattributes

@@ -1,0 +1,828 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartBiller</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              300: '#93c5fd',
+              400: '#60a5fa',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dark-mode.css') }}">
+  <!-- Theme Management Script - Load early to ensure theme is applied immediately -->
+  <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+  <script>
+      // Apply theme immediately to prevent flash of unstyled content
+      (function () {
+        const theme = localStorage.getItem('smartbiller-theme') ||
+          (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      })();
+  </script>
+  <style>
+    .gradient-bg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .glass-effect {
+      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .card-hover {
+      transition: all 0.3s ease;
+    }
+
+    .card-hover:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .sidebar-link {
+      transition: all 0.3s ease;
+    }
+
+    .sidebar-link:hover {
+      background-color: rgba(59, 130, 246, 0.1);
+      transform: translateX(4px);
+    }
+
+    .sidebar-link.active {
+      background-color: rgba(59, 130, 246, 0.15);
+      border-right: 3px solid #3b82f6;
+    }
+
+    /* Custom scrollbar for sidebar */
+    .sidebar-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .sidebar-scroll::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 3px;
+    }
+
+    .sidebar-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+
+    .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .chatbot-btn {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      z-index: 50;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .chatbot-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+    }
+
+    .chatbot-window {
+      position: fixed;
+      bottom: 100px;
+      right: 32px;
+      width: 380px;
+      max-width: 95vw;
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      z-index: 40;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid #e5e7eb;
+    }
+
+    .chatbot-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 1rem;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .chatbot-messages {
+      padding: 1rem;
+      height: 300px;
+      overflow-y: auto;
+      background: #f8fafc;
+    }
+
+    .chatbot-input {
+      display: flex;
+      border-top: 1px solid #e5e7eb;
+      background: white;
+    }
+
+    .chatbot-input input {
+      flex: 1;
+      border: none;
+      padding: 0.75rem;
+      outline: none;
+      font-size: 1rem;
+      border-radius: 0 0 0 1rem;
+    }
+
+    .chatbot-input button {
+      border: none;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 0 1.5rem;
+      font-size: 1.2rem;
+      border-radius: 0 0 1rem 0;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .chatbot-input button:hover {
+      opacity: 0.9;
+    }
+
+    .chatbot-msg-user {
+      text-align: right;
+      margin-bottom: 0.5rem;
+      color: #667eea;
+      font-weight: 500;
+    }
+
+    .chatbot-msg-bot {
+      text-align: left;
+      margin-bottom: 0.5rem;
+      color: #374151;
+      background: white;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Mobile menu animations */
+    .animate-fade-in {
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Mobile menu button animation */
+    #mobile-menu-button {
+      transition: all 0.3s ease;
+    }
+
+    #mobile-menu-button:hover {
+      transform: scale(1.1);
+    }
+
+    #mobile-menu-button:active {
+      transform: scale(0.95);
+    }
+  </style>
+  {% block pagestyle %}{% endblock %}
+</head>
+
+<body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen" data-theme="{{ session.get('theme', 'light') }}">
+  {% if session['landlord_id'] %}
+  <!-- Sidebar Layout for Authenticated Users -->
+  <div class="flex h-screen bg-gray-50">
+    <!-- Sidebar -->
+    <div
+      class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 flex flex-col"
+      id="sidebar">
+      <!-- Sidebar Header -->
+      <div class="flex items-center justify-between p-6 border-b border-gray-200">
+        <div class="flex items-center">
+          <i class="fas fa-home text-2xl text-blue-600 mr-3"></i>
+          <h1 class="text-xl font-bold text-gray-900">SmartBiller</h1>
+        </div>
+        <button id="close-sidebar" class="lg:hidden text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times text-lg"></i>
+        </button>
+      </div>
+
+      <!-- User Info -->
+      <div class="p-6 border-b border-gray-200">
+        <div class="flex items-center">
+          <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+            <i class="fas fa-user text-blue-600"></i>
+          </div>
+          <div>
+            <p class="font-medium text-gray-900">{{ session.get('landlord_name', 'Landlord') }}</p>
+            <p class="text-sm text-gray-500">Landlord</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Links - Scrollable Container -->
+      <nav class="flex-1 overflow-y-auto sidebar-scroll">
+        <div class="px-4 py-4 space-y-2">
+          <a href="{{ url_for('main.dashboard') }}"
+            class="sidebar-link {% if request.path == '/dashboard' %}active{% endif %} flex items-center px-4 py-3 text-gray-700 rounded-lg">
+            <i class="fas fa-tachometer-alt mr-3 text-blue-600"></i>
+            <span>Dashboard</span>
+          </a>
+
+          <a href="{{ url_for('main.add_property') }}"
+            class="sidebar-link {% if request.path == '/add_property' %}active{% endif %} flex items-center px-4 py-3 text-gray-700 rounded-lg">
+            <i class="fas fa-plus mr-3 text-green-600"></i>
+            <span>Add Property</span>
+          </a>
+
+          <a href="{{ url_for('main.add_unit_selector') }}"
+            class="sidebar-link {% if request.path == '/add_unit' %}active{% endif %} flex items-center px-4 py-3 text-gray-700 rounded-lg">
+            <i class="fas fa-door-open mr-3 text-blue-600"></i>
+            <span>Add Units</span>
+          </a>
+          <a href="{{ url_for('main.invoice_management') }}"
+            class="sidebar-link {% if request.path == '/invoice_management' %}active{% endif %} flex items-center px-4 py-3 text-gray-700 rounded-lg">
+            <i class="fas fa-file-invoice mr-3 text-indigo-600"></i>
+            <span>Invoice Management</span>
+          </a>
+
+          <a href="{{ url_for('main.send_reminders') }}"
+            class="sidebar-link {% if request.path == '/send_reminders' %}active{% endif %} flex items-center px-4 py-3 text-gray-700 rounded-lg">
+            <i class="fas fa-bell mr-3 text-yellow-600"></i>
+            <span>Send Reminders</span>
+          </a>
+
+          <a href="{{ url_for('main.send_notice') }}"
+            class="sidebar-link {% if request.path == '/send_notice' %}active{% endif %} flex items-center px-4 py-3 text-gray-700 rounded-lg">
+            <i class="fas fa-envelope mr-3 text-purple-600"></i>
+            <span>Send Notice</span>
+          </a>
+
+          <a href="{{ url_for('main.landlord_exit_notices') }}"
+            class="sidebar-link {% if request.path == '/landlord/exit_notices' %}active{% endif %} flex items-center px-4 py-3 text-gray-700 rounded-lg">
+            <i class="fas fa-sign-out-alt mr-3 text-red-600"></i>
+            <span>Exit Notices</span>
+            {% if session.get('pending_exit_notices_count', 0) > 0 %}
+            <span class="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+              {{ session.get('pending_exit_notices_count', 0) }}
+            </span>
+            {% endif %}
+          </a>
+
+          <a href="{{ url_for('main.reports') }}"
+            class="sidebar-link {% if request.path == '/reports' %}active{% endif %} flex items-center px-4 py-3 text-gray-700 rounded-lg">
+            <i class="fas fa-chart-bar mr-3 text-indigo-600"></i>
+            <span>Reports</span>
+          </a>
+
+          <a href="{{ url_for('main.employees') }}"
+            class="sidebar-link {% if request.path == '/employees' %}active{% endif %} flex items-center px-4 py-3 text-gray-700 rounded-lg">
+            <i class="fas fa-users mr-3 text-green-600"></i>
+            <span>Manage Employees</span>
+          </a>
+
+          <a href="{{ url_for('main.property_history') }}"
+            class="sidebar-link {% if request.path == '/property_history' %}active{% endif %} flex items-center px-4 py-3 text-gray-700 rounded-lg">
+            <i class="fas fa-history mr-3 text-purple-600"></i>
+            <span>Property History</span>
+          </a>
+        </div>
+      </nav>
+
+      <!-- Bottom Links - Fixed at Bottom -->
+      <div class="p-4 border-t border-gray-200 bg-white">
+        <a href="{{ url_for('main.logout') }}"
+          class="flex items-center px-4 py-3 text-red-600 rounded-lg hover:bg-red-50 transition-colors duration-200">
+          <i class="fas fa-sign-out-alt mr-3"></i>
+          <span>Logout</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="lg:ml-64 flex-1 flex flex-col">
+      <!-- Top Bar -->
+      <div class="bg-white shadow-sm border-b border-gray-200">
+        <div class="flex items-center justify-between px-6 py-4">
+          <div class="flex items-center">
+            <button id="open-sidebar" class="lg:hidden text-gray-500 hover:text-gray-700 mr-4">
+              <i class="fas fa-bars text-lg"></i>
+            </button>
+            <h2 class="text-xl font-semibold text-gray-900">{% block page_title %}Dashboard{% endblock %}</h2>
+          </div>
+          <div class="flex items-center space-x-4">
+            <!-- Theme Toggle Button -->
+            <button onclick="toggleTheme()"
+              class="theme-toggle p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200" title="Toggle theme">
+              <i class="fas fa-moon text-gray-600"></i>
+            </button>
+
+            {% if session.get('pending_exit_notices_count', 0) > 0 %}
+            <div class="relative">
+              <a href="{{ url_for('main.landlord_exit_notices') }}"
+                class="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium hover:bg-red-600 transition-colors duration-200">
+                <i class="fas fa-bell mr-1"></i>
+                {{ session.get('pending_exit_notices_count', 0) }} Exit Notice{{ 's' if
+                session.get('pending_exit_notices_count', 0) != 1 else '' }}
+              </a>
+            </div>
+            {% endif %}
+            <span class="text-sm text-gray-500">
+              Welcome,
+              {% if session.get('employee_name') %}
+              {{ session.get('employee_name') }} ({{ session.get('employee_position') }})
+              {% else %}
+              {{ session.get('landlord_name', 'Landlord') }}
+              {% endif %}
+            </span>
+            {% if session.get('employee_id') %}
+            <a href="{{ url_for('main.employee_change_password') }}" class="text-blue-600 hover:text-blue-800 text-sm">
+              <i class="fas fa-key mr-1"></i>Change Password
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Content Area -->
+      <div class="flex-1 overflow-auto">
+        <div class="p-6">
+          <!-- Flash Messages for Dashboard Content -->
+          {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+          <div class="mb-6">
+            {% for category, message in messages %}
+            <div
+              class="{% if category == 'error' %}bg-red-50 border-red-200 text-red-800{% elif category == 'success' %}bg-green-50 border-green-200 text-green-800{% elif category == 'warning' %}bg-yellow-50 border-yellow-200 text-yellow-800{% else %}bg-blue-50 border-blue-200 text-blue-800{% endif %} border px-4 py-3 rounded-lg mb-3">
+              <i
+                class="fas {% if category == 'error' %}fa-exclamation-circle{% elif category == 'success' %}fa-check-circle{% elif category == 'warning' %}fa-exclamation-triangle{% else %}fa-info-circle{% endif %} mr-2"></i>
+              {{ message }}
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+          {% endwith %}
+
+          {% block dashboard_content %}
+          {% if session['landlord_id'] %}
+          <!-- Authenticated user content area -->
+          {% else %}
+          <!-- Non-authenticated user content area -->
+          {% endif %}
+          {% endblock %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Overlay -->
+    <div id="mobile-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden"></div>
+  </div>
+
+  {% else %}
+  <!-- Regular Navigation for Non-Authenticated Users -->
+  <nav class="fixed top-0 w-full z-30 bg-white bg-opacity-95 backdrop-blur-md border-b border-gray-200 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center py-4">
+        <div class="flex items-center">
+          <a href="/" class="text-2xl font-bold text-gray-900 hover:text-blue-600 transition-colors duration-200">
+            <i class="fas fa-home mr-2 text-blue-600"></i>SmartBiller
+          </a>
+        </div>
+
+        <!-- Desktop Navigation -->
+        <div class="hidden md:flex items-center space-x-8">
+          <a href="/"
+            class="text-gray-700 hover:text-blue-600 transition-colors duration-200 font-medium {% if request.path == '/' %}text-blue-600 font-semibold{% endif %}">
+            Home
+          </a>
+          <a href="{{ url_for('main.pricing') }}"
+            class="text-gray-700 hover:text-blue-600 transition-colors duration-200 font-medium {% if request.path == '/pricing' %}text-blue-600 font-semibold{% endif %}">
+            Pricing
+          </a>
+          <a href="{{ url_for('main.about') }}"
+            class="text-gray-700 hover:text-blue-600 transition-colors duration-200 font-medium {% if request.path == '/about' %}text-blue-600 font-semibold{% endif %}">
+            About
+          </a>
+          <a href="{{ url_for('main.contact') }}"
+            class="text-gray-700 hover:text-blue-600 transition-colors duration-200 font-medium {% if request.path == '/contact' %}text-blue-600 font-semibold{% endif %}">
+            Contact
+          </a>
+
+          <!-- Login Dropdown -->
+          <div class="relative group">
+            <button
+              class="bg-blue-600 text-white px-4 py-2 rounded-full font-medium hover:bg-blue-700 transition-colors duration-200 shadow-md flex items-center">
+              <i class="fas fa-sign-in-alt mr-2"></i>
+              Login
+              <i class="fas fa-chevron-down ml-2 text-sm"></i>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div
+              class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+              <div class="py-2">
+                <a href="{{ url_for('main.login') }}"
+                  class="flex items-center px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200">
+                  <i class="fas fa-user-tie mr-3 text-blue-600"></i>
+                  <span>Landlord Login</span>
+                </a>
+                <a href="{{ url_for('main.tenant_login') }}"
+                  class="flex items-center px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200">
+                  <i class="fas fa-home mr-3 text-green-600"></i>
+                  <span>Tenant Login</span>
+                </a>
+                <a href="{{ url_for('main.employee_login') }}"
+                  class="flex items-center px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200">
+                  <i class="fas fa-users mr-3 text-purple-600"></i>
+                  <span>Employee Login</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Theme Toggle Button -->
+          <!-- <button onclick="toggleTheme()"
+            class="theme-toggle p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200" title="Toggle theme">
+            <i class="fas fa-moon text-gray-600"></i>
+          </button> -->
+        </div>
+
+        <!-- Mobile menu button -->
+        <div class="md:hidden">
+          <button type="button" id="mobile-menu-button"
+            class="text-gray-700 hover:text-blue-600 focus:outline-none focus:text-blue-600 transition-colors duration-200"
+            aria-label="Toggle mobile menu">
+            <i class="fas fa-bars text-xl" id="menu-icon"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile Navigation -->
+      <div id="mobile-menu" class="hidden md:hidden pb-4 bg-gray-50 rounded-lg mt-2 border border-gray-200">
+        <div class="flex flex-col space-y-4 px-4 py-4">
+          <a href="/"
+            class="text-gray-700 hover:text-blue-600 transition-colors duration-200 py-2 font-medium {% if request.path == '/' %}text-blue-600 font-semibold{% endif %}">
+            <i class="fas fa-home mr-2"></i>Home
+          </a>
+          <a href="{{ url_for('main.pricing') }}"
+            class="text-gray-700 hover:text-blue-600 transition-colors duration-200 py-2 font-medium {% if request.path == '/pricing' %}text-blue-600 font-semibold{% endif %}">
+            <i class="fas fa-tags mr-2"></i>Pricing
+          </a>
+          <a href="{{ url_for('main.about') }}"
+            class="text-gray-700 hover:text-blue-600 transition-colors duration-200 py-2 font-medium {% if request.path == '/about' %}text-blue-600 font-semibold{% endif %}">
+            <i class="fas fa-info-circle mr-2"></i>About
+          </a>
+          <a href="{{ url_for('main.contact') }}"
+            class="text-gray-700 hover:text-blue-600 transition-colors duration-200 py-2 font-medium {% if request.path == '/contact' %}text-blue-600 font-semibold{% endif %}">
+            <i class="fas fa-envelope mr-2"></i>Contact
+          </a>
+
+          <div class="border-t border-gray-300 pt-4">
+            <!-- Mobile Login Dropdown -->
+            <div class="relative">
+              <button type="button" id="mobile-login-dropdown"
+                class="w-full bg-blue-600 text-white px-4 py-2 rounded-full font-medium hover:bg-blue-700 transition-colors duration-200 shadow-md flex items-center justify-center">
+                <i class="fas fa-sign-in-alt mr-2"></i>
+                Login
+                <i class="fas fa-chevron-down ml-2 text-sm" id="mobile-login-chevron"></i>
+              </button>
+
+              <!-- Mobile Dropdown Menu -->
+              <div id="mobile-login-menu" class="hidden mt-2 bg-white rounded-lg shadow-lg border border-gray-200">
+                <div class="py-2">
+                  <a href="{{ url_for('main.login') }}"
+                    class="flex items-center px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200">
+                    <i class="fas fa-user-tie mr-3 text-blue-600"></i>
+                    <span>Landlord Login</span>
+                  </a>
+                  <a href="{{ url_for('main.tenant_login') }}"
+                    class="flex items-center px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200">
+                    <i class="fas fa-home mr-3 text-green-600"></i>
+                    <span>Tenant Login</span>
+                  </a>
+                  <a href="{{ url_for('main.employee_login') }}"
+                    class="flex items-center px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200">
+                    <i class="fas fa-users mr-3 text-purple-600"></i>
+                    <span>Employee Login</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="pt-20 px-4 sm:px-6 lg:px-8">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="max-w-4xl mx-auto mb-6">
+      {% for category, message in messages %}
+      <div
+        class="{% if category == 'error' %}bg-red-50 border-red-200 text-red-800{% elif category == 'success' %}bg-green-50 border-green-200 text-green-800{% elif category == 'warning' %}bg-yellow-50 border-yellow-200 text-yellow-800{% else %}bg-blue-50 border-blue-200 text-blue-800{% endif %} border px-4 py-3 rounded-lg mb-3">
+        <i
+          class="fas {% if category == 'error' %}fa-exclamation-circle{% elif category == 'success' %}fa-check-circle{% elif category == 'warning' %}fa-exclamation-triangle{% else %}fa-info-circle{% endif %} mr-2"></i>
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </div>
+  {% endif %}
+
+  <!-- Footer - Only show full footer for non-authenticated users -->
+  {% if not session['landlord_id'] %}
+  <footer class="bg-gray-900 text-white mt-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <!-- Brand -->
+        <div class="col-span-1 md:col-span-2">
+          <h3 class="text-2xl font-bold mb-4">
+            <i class="fas fa-home mr-2"></i>SmartBiller
+          </h3>
+          <p class="text-gray-400 mb-4">
+            Streamline your rental property management with our comprehensive SaaS solution designed for Kenyan
+            landlords.
+          </p>
+          <div class="flex space-x-4">
+            <a href="#" class="text-gray-400 hover:text-white transition-colors duration-200">
+              <i class="fab fa-facebook text-xl"></i>
+            </a>
+            <a href="#" class="text-gray-400 hover:text-white transition-colors duration-200">
+              <i class="fab fa-twitter text-xl"></i>
+            </a>
+            <a href="#" class="text-gray-400 hover:text-white transition-colors duration-200">
+              <i class="fab fa-linkedin text-xl"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div>
+          <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
+          <ul class="space-y-2">
+            <li><a href="/" class="text-gray-400 hover:text-white transition-colors duration-200">Home</a></li>
+            <li><a href="{{ url_for('main.pricing') }}"
+                class="text-gray-400 hover:text-white transition-colors duration-200">Pricing</a></li>
+            <li><a href="{{ url_for('main.about') }}"
+                class="text-gray-400 hover:text-white transition-colors duration-200">About</a></li>
+            <li><a href="{{ url_for('main.contact') }}"
+                class="text-gray-400 hover:text-white transition-colors duration-200">Contact</a></li>
+          </ul>
+        </div>
+
+        <!-- Contact Info -->
+        <div>
+          <h4 class="text-lg font-semibold mb-4">Contact</h4>
+          <div class="space-y-2 text-gray-400">
+            <p><i class="fas fa-envelope mr-2"></i>info@smartbiller.co.ke</p>
+            <p><i class="fas fa-phone mr-2"></i>+254 788 963 983</p>
+            <p><i class="fas fa-map-marker-alt mr-2"></i>Nairobi, Kenya</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+        <p>&copy; 2025 SmartBiller. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+  {% else %}
+  <!-- Simple footer for authenticated users -->
+  <footer class="bg-white border-t border-gray-200 mt-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div class="text-center text-gray-600">
+        <p>&copy; 2025 SmartBiller. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+  {% endif %}
+
+  <!-- Chatbot -->
+  {% if session['landlord_id'] %}
+  <button class="chatbot-btn" onclick="toggleChatbot()">
+    <i class="fas fa-comments"></i>
+  </button>
+
+  <div class="chatbot-window" id="chatbot-window">
+    <div class="chatbot-header">
+      <i class="fas fa-robot mr-2"></i>SmartBiller Assistant
+    </div>
+    <div class="chatbot-messages" id="chatbot-messages">
+      <div class="chatbot-msg-bot">
+        Hello! I'm your SmartBiller assistant. How can I help you today?
+      </div>
+    </div>
+    <div class="chatbot-input">
+      <input type="text" id="chatbot-input" placeholder="Type your message..."
+        onkeypress="handleChatbotKeypress(event)">
+      <button onclick="sendChatbotMessage()">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </div>
+  </div>
+  {% endif %}
+
+  <script>
+    // Mobile menu toggle
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const menuIcon = document.getElementById('menu-icon');
+
+    if (mobileMenuButton) {
+      mobileMenuButton.addEventListener('click', function () {
+        mobileMenu.classList.toggle('hidden');
+        menuIcon.classList.toggle('fa-bars');
+        menuIcon.classList.toggle('fa-times');
+      });
+    }
+
+    // Mobile login dropdown toggle
+    const mobileLoginDropdown = document.getElementById('mobile-login-dropdown');
+    const mobileLoginMenu = document.getElementById('mobile-login-menu');
+    const mobileLoginChevron = document.getElementById('mobile-login-chevron');
+
+    if (mobileLoginDropdown) {
+      mobileLoginDropdown.addEventListener('click', function () {
+        mobileLoginMenu.classList.toggle('hidden');
+        mobileLoginChevron.classList.toggle('fa-chevron-down');
+        mobileLoginChevron.classList.toggle('fa-chevron-up');
+      });
+    }
+
+    // Sidebar toggle for authenticated users
+    {% if session['landlord_id'] %}
+    const sidebar = document.getElementById('sidebar');
+    const mobileOverlay = document.getElementById('mobile-overlay');
+    const openSidebarBtn = document.getElementById('open-sidebar');
+    const closeSidebarBtn = document.getElementById('close-sidebar');
+
+    function openSidebar() {
+      sidebar.classList.remove('-translate-x-full');
+      mobileOverlay.classList.remove('hidden');
+      document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    }
+
+    function closeSidebar() {
+      sidebar.classList.add('-translate-x-full');
+      mobileOverlay.classList.add('hidden');
+      document.body.style.overflow = ''; // Restore scrolling
+    }
+
+    if (openSidebarBtn) openSidebarBtn.addEventListener('click', openSidebar);
+    if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', closeSidebar);
+    if (mobileOverlay) mobileOverlay.addEventListener('click', closeSidebar);
+
+    // Initialize sidebar state for mobile
+    if (window.innerWidth < 1024) {
+      sidebar.classList.add('-translate-x-full');
+    }
+
+    // Handle window resize for better mobile experience
+    window.addEventListener('resize', function () {
+      if (window.innerWidth >= 1024) {
+        sidebar.classList.remove('-translate-x-full');
+        mobileOverlay.classList.add('hidden');
+        document.body.style.overflow = '';
+      } else {
+        sidebar.classList.add('-translate-x-full');
+      }
+    });
+
+    // Close sidebar when clicking on a link (mobile)
+    const sidebarLinks = sidebar.querySelectorAll('a');
+    sidebarLinks.forEach(link => {
+      link.addEventListener('click', function () {
+        if (window.innerWidth < 1024) {
+          closeSidebar();
+        }
+      });
+    });
+    {% endif %}
+
+    // Chatbot functionality
+    function toggleChatbot() {
+      const chatbotWindow = document.getElementById('chatbot-window');
+      chatbotWindow.style.display = chatbotWindow.style.display === 'flex' ? 'none' : 'flex';
+    }
+
+    function handleChatbotKeypress(event) {
+      if (event.key === 'Enter') {
+        sendChatbotMessage();
+      }
+    }
+
+    function sendChatbotMessage() {
+      const input = document.getElementById('chatbot-input');
+      const message = input.value.trim();
+      if (!message) return;
+
+      const messagesContainer = document.getElementById('chatbot-messages');
+
+      // Add user message
+      messagesContainer.innerHTML += `<div class="chatbot-msg-user">${message}</div>`;
+
+      // Clear input
+      input.value = '';
+
+      // Show typing indicator
+      messagesContainer.innerHTML += `<div class="chatbot-msg-bot" id="typing-indicator">Typing...</div>`;
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+      // Send to API
+      fetch('/api/chatbot', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: message })
+      })
+        .then(response => response.json())
+        .then(data => {
+          // Remove typing indicator
+          const typingIndicator = document.getElementById('typing-indicator');
+          if (typingIndicator) typingIndicator.remove();
+
+          // Add bot response
+          if (data.reply) {
+            messagesContainer.innerHTML += `<div class="chatbot-msg-bot">${data.reply}</div>`;
+          } else {
+            messagesContainer.innerHTML += `<div class="chatbot-msg-bot">Sorry, I couldn't process your request.</div>`;
+          }
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          const typingIndicator = document.getElementById('typing-indicator');
+          if (typingIndicator) typingIndicator.remove();
+          messagesContainer.innerHTML += `<div class="chatbot-msg-bot">Sorry, there was an error processing your request.</div>`;
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        });
+    }
+
+    // Theme toggle functionality
+    function toggleTheme() {
+      if (window.themeManager) {
+        window.themeManager.toggleTheme();
+      }
+    }
+  </script>
+</body>
+
+</html>

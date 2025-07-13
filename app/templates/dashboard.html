@@ -1,0 +1,1326 @@
+{% extends "base.html" %}
+
+{% block dashboard_content %}
+<!-- Dashboard Content -->
+<div class="max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+        <p class="text-gray-600">Welcome back, {{ landlord.name }}!</p>
+      </div>
+      <div class="flex space-x-3">
+        <a href="{{ url_for('main.add_property') }}"
+          class="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200">
+          <i class="fas fa-plus mr-2"></i>Add Property
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trial Banner -->
+  {% if is_trial_active %}
+  <div class="mb-8">
+    <div class="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl shadow-lg p-6 text-white">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center">
+          <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center mr-4">
+            <i class="fas fa-gift text-2xl"></i>
+          </div>
+          <div>
+            <h2 class="text-2xl font-bold mb-1">🎉 Free Trial Active!</h2>
+            <p class="text-green-100">
+              You have <strong>{{ trial_days_remaining }} days</strong> remaining in your free trial.
+              Enjoy unlimited access to all features during your trial period.
+            </p>
+          </div>
+        </div>
+        <div class="flex space-x-3">
+          <a href="{{ url_for('main.pricing') }}"
+            class="bg-white bg-opacity-20 text-white px-4 py-2 rounded-lg hover:bg-opacity-30 transition-all text-sm font-medium">
+            <i class="fas fa-eye mr-2"></i>View Plans
+          </a>
+          <a href="{{ url_for('main.upgrade') }}"
+            class="bg-white text-green-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition-all text-sm font-medium font-semibold">
+            <i class="fas fa-arrow-up mr-2"></i>Upgrade Now
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Enhanced Stats Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+    <div
+      class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+      <div class="flex items-center">
+        <div class="p-4 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-600 text-white mr-4">
+          <i class="fas fa-home text-2xl"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-600">Properties</p>
+          <p class="text-3xl font-bold text-gray-900">{{ total_properties }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+      <div class="flex items-center">
+        <div class="p-4 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white mr-4">
+          <i class="fas fa-building text-2xl"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-600">Total Units</p>
+          <p class="text-3xl font-bold text-gray-900">{{ total_units }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+      <div class="flex items-center">
+        <div class="p-4 rounded-full bg-gradient-to-r from-green-500 to-green-600 text-white mr-4">
+          <i class="fas fa-check-circle text-2xl"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-600">Paid This Month</p>
+          <p class="text-3xl font-bold text-gray-900">{{ total_paid }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+      <div class="flex items-center">
+        <div class="p-4 rounded-full bg-gradient-to-r from-red-500 to-red-600 text-white mr-4">
+          <i class="fas fa-exclamation-triangle text-2xl"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-600">Unpaid</p>
+          <p class="text-3xl font-bold text-gray-900">{{ total_unpaid }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+      <div class="flex items-center">
+        <div class="p-4 rounded-full bg-gradient-to-r from-purple-500 to-purple-600 text-white mr-4">
+          <i class="fas fa-money-bill-wave text-2xl"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-600">Total Collected</p>
+          <p class="text-3xl font-bold text-gray-900">KES {{ "%.0f"|format(total_collected) }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Plan Usage Stats Widget -->
+  {% if usage and current_plan %}
+  <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-8">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center">
+        <i class="fas fa-chart-pie text-purple-600 mr-3 text-xl"></i>
+        <h2 class="text-xl font-bold text-gray-900">Plan Usage</h2>
+      </div>
+      <div class="flex items-center space-x-2">
+        <span class="px-3 py-1 rounded-full text-sm font-medium 
+          {% if current_plan.code == 'basic' %}bg-blue-100 text-blue-800
+          {% elif current_plan.code == 'professional' %}bg-purple-100 text-purple-800
+          {% else %}bg-gray-100 text-gray-800{% endif %}">
+          {{ current_plan.code|title }} Plan
+        </span>
+        <a href="{{ url_for('main.upgrade') }}"
+          class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 text-sm font-medium">
+          <i class="fas fa-arrow-up mr-2"></i>Upgrade
+        </a>
+
+        <!-- <a href="{{ url_for('main.theme_demo') }}"
+          class="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white px-4 py-2 rounded-lg hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 text-sm font-medium">
+          <i class="fas fa-palette mr-2"></i>Theme Demo
+        </a> -->
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Properties Usage -->
+      <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="font-semibold text-gray-900">
+            <i class="fas fa-building text-blue-600 mr-2"></i>
+            Properties
+          </h3>
+          <span class="text-sm font-medium text-blue-700">{{ usage.properties_count|default(0) }}/{{
+            current_plan.max_properties|default(0) }}</span>
+        </div>
+        <div class="w-full bg-blue-200 rounded-full h-2 mb-2">
+          <div class="bg-blue-600 h-2 rounded-full transition-all duration-500"
+            style="width: {{ ((usage.properties_count|default(0)) / (current_plan.max_properties|default(1)) * 100)|round }}%">
+          </div>
+        </div>
+        {% if usage.properties_count|default(0) >= current_plan.max_properties|default(0) %}
+        <p class="text-red-600 text-xs font-medium">⚠️ Limit reached</p>
+        {% else %}
+        <p class="text-blue-600 text-xs">{{ (current_plan.max_properties|default(0)) -
+          (usage.properties_count|default(0)) }} remaining</p>
+        {% endif %}
+      </div>
+
+      <!-- Units Usage -->
+      <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="font-semibold text-gray-900">
+            <i class="fas fa-home text-green-600 mr-2"></i>
+            Total Units
+          </h3>
+          <span class="text-sm font-medium text-green-700">{{ usage.units_count|default(0) }}</span>
+        </div>
+        <p class="text-green-600 text-xs">Across all properties</p>
+      </div>
+
+      <!-- SMS Usage -->
+      <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="font-semibold text-gray-900">
+            <i class="fas fa-sms text-purple-600 mr-2"></i>
+            SMS This Month
+          </h3>
+          <span class="text-sm font-medium text-purple-700">{{ usage.sms_sent|default(0) }}/{{
+            current_plan.max_sms_per_month|default(0) }}</span>
+        </div>
+        <div class="w-full bg-purple-200 rounded-full h-2 mb-2">
+          <div class="bg-purple-600 h-2 rounded-full transition-all duration-500"
+            style="width: {{ ((usage.sms_sent|default(0)) / (current_plan.max_sms_per_month|default(1)) * 100)|round }}%">
+          </div>
+        </div>
+        {% if usage.sms_sent|default(0) >= current_plan.max_sms_per_month|default(0) %}
+        <p class="text-red-600 text-xs font-medium">⚠️ Limit reached</p>
+        {% else %}
+        <p class="text-purple-600 text-xs">{{ (current_plan.max_sms_per_month|default(0)) - (usage.sms_sent|default(0))
+          }} remaining</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Enhanced Month Selector and Filters -->
+  <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-8">
+    <form method="POST" class="space-y-4">
+      <!-- Month Selector -->
+      <div class="flex items-center space-x-4">
+        <div class="flex items-center">
+          <i class="fas fa-calendar-alt text-blue-600 mr-3 text-xl"></i>
+          <label class="text-sm font-medium text-gray-700">Select Month:</label>
+        </div>
+        <select name="selected_month"
+          class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          {% for month in months %}
+          <option value="{{ month }}" {% if month==current_month %}selected{% endif %}>{{ month }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Status Filters -->
+      <div class="border-t border-gray-200 pt-4">
+        <div class="flex flex-wrap items-center gap-4">
+          <div class="flex items-center">
+            <i class="fas fa-filter text-purple-600 mr-3 text-xl"></i>
+            <label class="text-sm font-medium text-gray-700 mr-3">Filter by Status:</label>
+          </div>
+
+          <!-- Payment Status Filter -->
+          <div class="flex items-center space-x-2">
+            <label class="text-sm text-gray-600">Payment:</label>
+            <select name="payment_filter"
+              class="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option value="">All Payments</option>
+              <option value="paid" {% if request.form.get('payment_filter')=='paid' %}selected{% endif %}>Paid</option>
+              <option value="unpaid" {% if request.form.get('payment_filter')=='unpaid' %}selected{% endif %}>Unpaid
+              </option>
+              <option value="partial" {% if request.form.get('payment_filter')=='partial' %}selected{% endif %}>Partial
+              </option>
+            </select>
+          </div>
+
+          <!-- Occupancy Status Filter -->
+          <div class="flex items-center space-x-2">
+            <label class="text-sm text-gray-600">Occupancy:</label>
+            <select name="occupancy_filter"
+              class="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option value="">All Units</option>
+              <option value="occupied" {% if request.form.get('occupancy_filter')=='occupied' %}selected{% endif %}>
+                Occupied</option>
+              <option value="vacant" {% if request.form.get('occupancy_filter')=='vacant' %}selected{% endif %}>Vacant
+              </option>
+            </select>
+          </div>
+
+          <!-- Property Filter -->
+          <div class="flex items-center space-x-2">
+            <label class="text-sm text-gray-600">Property:</label>
+            <select name="property_filter"
+              class="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option value="">All Properties</option>
+              {% for property in properties %}
+              <option value="{{ property.id }}" {% if request.form.get('property_filter')|int==property.id %}selected{%
+                endif %}>{{ property.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Unit Number Search -->
+          <div class="flex items-center space-x-2">
+            <label class="text-sm text-gray-600">Search Unit:</label>
+            <input type="text" name="unit_search" placeholder="Enter unit number..."
+              value="{{ request.form.get('unit_search') or request.args.get('unit_search') }}"
+              class="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          </div>
+
+          <!-- Apply Filters Button -->
+          <button type="submit"
+            class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 flex items-center">
+            <i class="fas fa-filter mr-2"></i>Apply Filters
+          </button>
+
+          <!-- Clear Filters Button -->
+          <a href="{{ url_for('main.dashboard') }}"
+            class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-all duration-200 flex items-center">
+            <i class="fas fa-times mr-2"></i>Clear
+          </a>
+        </div>
+      </div>
+
+      <!-- Active Filters Display -->
+      {% if request.form.get('payment_filter') or request.form.get('occupancy_filter') or
+      request.form.get('property_filter') or request.form.get('unit_search') %}
+      <div class="border-t border-gray-200 pt-4">
+        <div class="flex items-center">
+          <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+          <span class="text-sm text-gray-600">Active filters:</span>
+          <div class="flex flex-wrap gap-2 ml-2">
+            {% if request.form.get('payment_filter') %}
+            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+              Payment: {{ request.form.get('payment_filter')|title }}
+            </span>
+            {% endif %}
+            {% if request.form.get('occupancy_filter') %}
+            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+              Occupancy: {{ request.form.get('occupancy_filter')|title }}
+            </span>
+            {% endif %}
+            {% if request.form.get('property_filter') %}
+            {% set selected_property = properties|selectattr('id', 'equalto',
+            request.form.get('property_filter')|int)|first %}
+            <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">
+              Property: {{ selected_property.name if selected_property else 'Unknown' }}
+            </span>
+            {% endif %}
+            {% if request.form.get('unit_search') %}
+            <span class="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">
+              Unit Search: {{ request.form.get('unit_search') }}
+            </span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </form>
+  </div>
+
+  <!-- Enhanced Properties Section with Collapsible Functionality -->
+  {% for property in properties %}
+  <div class="bg-white rounded-xl shadow-lg border border-gray-200 mb-8 overflow-hidden property-card"
+    data-property-id="{{ property.id }}">
+    <!-- Property Header with Collapse Toggle -->
+    <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4 cursor-pointer property-header"
+      onclick="toggleProperty('{{ property.id }}')">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center">
+          <button class="mr-3 text-white hover:text-blue-200 transition-colors duration-200 property-toggle">
+            <i class="fas fa-chevron-down text-lg transform transition-transform duration-200"></i>
+          </button>
+          <div>
+            <h2 class="text-2xl font-bold text-white flex items-center">
+              <i class="fas fa-building mr-3"></i>{{ property.name }}
+            </h2>
+            <p class="text-blue-100 flex items-center mt-1">
+              <i class="fas fa-map-marker-alt mr-2"></i>{{ property.location }}
+            </p>
+          </div>
+        </div>
+        <div class="text-right text-blue-100">
+          <p class="text-sm">{{ property.units|length }} Units</p>
+          <p class="text-xs opacity-75">{{ property.units|selectattr('tenant')|list|length }} Occupied</p>
+          <p class="text-xs opacity-75 mt-1">
+            <i class="fas fa-info-circle mr-1"></i>Click to expand/collapse
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Property Content (Collapsible) -->
+    <div class="property-content" id="property-content-{{ property.id }}">
+      <div class="p-6">
+        <!-- Property Summary Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 bg-gray-50 p-4 rounded-lg">
+          <div class="text-center">
+            <p class="text-2xl font-bold text-blue-600">{{ property.units|length }}</p>
+            <p class="text-sm text-gray-600">Total Units</p>
+          </div>
+          <div class="text-center">
+            <p class="text-2xl font-bold text-green-600">{{ property.units|selectattr('tenant')|list|length }}</p>
+            <p class="text-sm text-gray-600">Occupied</p>
+          </div>
+          <div class="text-center">
+            <p class="text-2xl font-bold text-red-600">{{ property.units|rejectattr('tenant')|list|length }}</p>
+            <p class="text-sm text-gray-600">Vacant</p>
+          </div>
+          <div class="text-center">
+            <p class="text-2xl font-bold text-purple-600">
+              {% set property_units = rent_status[property.id] %}
+              {% set paid_count = property_units|selectattr('payment_status', 'equalto', 'Paid')|list|length %}
+              {{ paid_count }}
+            </p>
+            <p class="text-sm text-gray-600">Paid This Month</p>
+          </div>
+        </div>
+
+        <!-- Units Grid -->
+        {% if rent_status[property.id] %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {% for unit_status in rent_status[property.id] %}
+          <div
+            class="bg-white border-2 rounded-xl p-6 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 {% if unit_status.paid %}border-green-200 bg-green-50{% elif unit_status.tenant %}border-red-200 bg-red-50{% else %}border-gray-200 bg-gray-50{% endif %}">
+            <!-- Unit Header with Enhanced Visuals -->
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                <i class="fas fa-door-open mr-2 text-blue-600"></i>Unit {{ unit_status.unit.unit_number }}
+              </h3>
+              {% if unit_status.payment_status == 'Paid' %}
+              <span class="bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full flex items-center">
+                <i class="fas fa-check mr-1"></i>Paid
+              </span>
+              {% elif unit_status.payment_status == 'Partial' %}
+              <span
+                class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full flex items-center">
+                <i class="fas fa-minus mr-1"></i>Partial
+              </span>
+              {% elif unit_status.payment_status == 'Unpaid' %}
+              <span class="bg-red-100 text-red-800 text-xs font-semibold px-3 py-1 rounded-full flex items-center">
+                <i class="fas fa-times mr-1"></i>Unpaid
+              </span>
+              {% else %}
+              <span class="bg-gray-100 text-gray-800 text-xs font-semibold px-3 py-1 rounded-full flex items-center">
+                <i class="fas fa-home mr-1"></i>Vacant
+              </span>
+              {% endif %}
+            </div>
+
+            <!-- Enhanced Unit Details -->
+            <div class="mb-4 space-y-2">
+              <div class="flex items-center text-sm text-gray-600">
+                <i class="fas fa-ruler-combined mr-2 text-blue-500"></i>
+                <span>{{ unit_status.unit.size or 'N/A' }} sq ft</span>
+              </div>
+              <div class="flex items-center text-sm text-gray-600">
+                <i class="fas fa-bed mr-2 text-green-500"></i>
+                <span>{{ unit_status.unit.bedrooms or 'N/A' }} Bedrooms</span>
+              </div>
+              <div class="flex items-center text-sm text-gray-600">
+                <i class="fas fa-bath mr-2 text-purple-500"></i>
+                <span>{{ unit_status.unit.bathrooms or 'N/A' }} Bathrooms</span>
+              </div>
+            </div>
+
+            <!-- Tenant Info with Avatar Placeholder -->
+            {% if unit_status.tenant %}
+            <div class="mb-4 p-3 bg-white rounded-lg border border-gray-200">
+              <div class="flex items-center">
+                <div
+                  class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mr-3">
+                  <i class="fas fa-user text-white"></i>
+                </div>
+                <div class="flex-1">
+                  <p class="font-semibold text-gray-900">{{ unit_status.tenant.name }}</p>
+                  <p class="text-sm text-gray-600 flex items-center">
+                    <i class="fas fa-phone mr-1"></i>{{ unit_status.tenant.phone }}
+                  </p>
+                  <p class="text-xs text-gray-500 mt-1">
+                    <i class="fas fa-calendar mr-1"></i>Since {{ unit_status.tenant.created_at.strftime('%b %Y') if
+                    unit_status.tenant.created_at else 'N/A' }}
+                  </p>
+                </div>
+              </div>
+            </div>
+            {% else %}
+            <div class="mb-4 p-3 bg-gray-100 rounded-lg">
+              <div class="flex items-center">
+                <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center mr-3">
+                  <i class="fas fa-user-slash text-gray-500"></i>
+                </div>
+                <div>
+                  <p class="font-semibold text-gray-500">No tenant</p>
+                  <p class="text-sm text-gray-400">Unit available</p>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- Payment Details with Visual Indicators -->
+            {% if unit_status.tenant %}
+            <div class="mb-6 space-y-3">
+              <div class="flex justify-between items-center p-2 bg-blue-50 rounded-lg">
+                <p class="text-sm text-gray-600 flex items-center">
+                  <i class="fas fa-money-bill-wave mr-2 text-blue-600"></i>Monthly Rent
+                </p>
+                <p class="text-lg font-bold text-gray-900">KES {{ "%.0f"|format(unit_status.amount) }}</p>
+              </div>
+
+              {% if unit_status.additional_charges > 0 %}
+              <div class="flex justify-between items-center p-2 bg-orange-50 rounded-lg">
+                <p class="text-sm text-gray-600 flex items-center">
+                  <i class="fas fa-plus-circle mr-2 text-orange-600"></i>Additional Charges
+                </p>
+                <p class="text-sm font-semibold text-orange-600">KES {{ "%.0f"|format(unit_status.additional_charges) }}
+                </p>
+              </div>
+              {% endif %}
+
+              <div
+                class="flex justify-between items-center p-2 {% if unit_status.month_paid > 0 %}bg-green-50{% else %}bg-gray-50{% endif %} rounded-lg">
+                <p class="text-sm text-gray-600 flex items-center">
+                  <i
+                    class="fas fa-calendar-check mr-2 {% if unit_status.month_paid > 0 %}text-green-600{% else %}text-gray-400{% endif %}"></i>Paid
+                  This Month
+                </p>
+                <p
+                  class="text-sm font-semibold {% if unit_status.month_paid > 0 %}text-green-600{% else %}text-gray-500{% endif %}">
+                  KES {{ "%.0f"|format(unit_status.month_paid) }}
+                </p>
+              </div>
+
+              {% if unit_status.month_balance > 0 %}
+              <div class="flex justify-between items-center p-2 bg-red-50 rounded-lg">
+                <p class="text-sm text-gray-600 flex items-center">
+                  <i class="fas fa-exclamation-triangle mr-2 text-red-600"></i>Outstanding
+                </p>
+                <p class="text-sm font-semibold text-red-600">
+                  KES {{ "%.0f"|format(unit_status.month_balance) }}
+                </p>
+              </div>
+              {% endif %}
+
+              {% if unit_status.overall_balance < 0 %} <div
+                class="flex justify-between items-center p-2 bg-green-50 rounded-lg border border-green-200">
+                <p class="text-sm text-green-700 font-medium flex items-center">
+                  <i class="fas fa-credit-card mr-2"></i>Credit Available
+                </p>
+                <p class="text-sm font-semibold text-green-700">
+                  KES {{ "%.0f"|format(unit_status.credit_available) }}
+                </p>
+            </div>
+            {% endif %}
+          </div>
+          {% else %}
+          <!-- Rent Amount for Vacant Units -->
+          <div class="mb-6 p-3 bg-gray-50 rounded-lg">
+            <p class="text-sm text-gray-600 mb-1 flex items-center">
+              <i class="fas fa-money-bill-wave mr-2"></i>Monthly Rent
+            </p>
+            <p class="text-2xl font-bold text-gray-900">KES {{ "%.0f"|format(unit_status.amount) }}</p>
+          </div>
+          {% endif %}
+
+          <!-- Enhanced Action Buttons -->
+          <div class="flex space-x-2">
+            {% if unit_status.tenant %}
+            <a href="{{ url_for('main.log_rent', tenant_id=unit_status.tenant.id) }}"
+              class="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-center py-3 px-3 rounded-lg text-sm font-medium hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center justify-center">
+              <i class="fas fa-plus mr-2"></i>Log Payment
+            </a>
+            <a href="{{ url_for('main.generate_invoice', tenant_id=unit_status.tenant.id) }}"
+              class="flex-1 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white text-center py-3 px-3 rounded-lg text-sm font-medium hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 flex items-center justify-center">
+              <i class="fas fa-file-invoice mr-2"></i>Generate Invoice
+            </a>
+            <a href="{{ url_for('main.unit_history', unit_id=unit_status.unit.id) }}"
+              class="flex-1 bg-gray-600 text-white text-center py-3 px-3 rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors duration-200 flex items-center justify-center">
+              <i class="fas fa-history mr-2"></i>History
+            </a>
+            {% else %}
+            <a href="{{ url_for('main.add_tenant', unit_id=unit_status.unit.id) }}"
+              class="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white text-center py-3 px-3 rounded-lg text-sm font-medium hover:from-green-700 hover:to-green-800 transition-all duration-200 flex items-center justify-center">
+              <i class="fas fa-user-plus mr-2"></i>Add Tenant
+            </a>
+            {% endif %}
+          </div>
+
+          <!-- Unit Management Buttons -->
+          <div class="flex space-x-2 mt-2">
+            <button
+              onclick="editUnit({{ unit_status.unit.id }}, '{{ unit_status.unit.unit_number }}', {{ unit_status.unit.rent_amount }})"
+              class="flex-1 bg-yellow-600 text-white text-center py-2 px-3 rounded-lg text-sm font-medium hover:bg-yellow-700 transition-colors duration-200 flex items-center justify-center">
+              <i class="fas fa-edit mr-2"></i>Edit
+            </button>
+            {% if not unit_status.tenant %}
+            <button onclick="deleteUnit({{ unit_status.unit.id }})"
+              class="flex-1 bg-red-600 text-white text-center py-2 px-3 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors duration-200 flex items-center justify-center">
+              <i class="fas fa-trash mr-2"></i>Delete
+            </button>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <!-- No Results Message -->
+      <div class="text-center py-12">
+        <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="fas fa-search text-3xl text-gray-400"></i>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2">No units found</h3>
+        <p class="text-gray-600 mb-4">No units match your current filter criteria.</p>
+        <div class="flex justify-center space-x-3">
+          <a href="{{ url_for('main.dashboard') }}"
+            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200">
+            <i class="fas fa-times mr-2"></i>Clear Filters
+          </a>
+          <a href="{{ url_for('main.add_unit_selector') }}"
+            class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200">
+            <i class="fas fa-plus mr-2"></i>Add Units
+          </a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<!-- Enhanced Quick Actions -->
+<div class="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
+  <h3 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+    <i class="fas fa-bolt mr-3 text-blue-600"></i>Quick Actions
+  </h3>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <a href="{{ url_for('main.add_property') }}"
+      class="group flex items-center p-6 border-2 border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition-all duration-300 transform hover:-translate-y-1">
+      <div
+        class="p-4 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl mr-4 group-hover:from-blue-600 group-hover:to-blue-700 transition-all duration-200">
+        <i class="fas fa-plus text-white text-xl"></i>
+      </div>
+      <div>
+        <p class="font-semibold text-gray-900">Add Property</p>
+        <p class="text-sm text-gray-600">Register new property</p>
+      </div>
+    </a>
+
+    <a href="{{ url_for('main.add_unit_selector') }}"
+      class="group flex items-center p-6 border-2 border-gray-200 rounded-xl hover:border-green-300 hover:bg-green-50 transition-all duration-300 transform hover:-translate-y-1">
+      <div
+        class="p-4 bg-gradient-to-r from-green-500 to-green-600 rounded-xl mr-4 group-hover:from-green-600 group-hover:to-green-700 transition-all duration-200">
+        <i class="fas fa-door-open text-white text-xl"></i>
+      </div>
+      <div>
+        <p class="font-semibold text-gray-900">Add Units</p>
+        <p class="text-sm text-gray-600">Add units to properties</p>
+      </div>
+    </a>
+
+    <a href="{{ url_for('main.send_reminders') }}"
+      class="group flex items-center p-6 border-2 border-gray-200 rounded-xl hover:border-yellow-300 hover:bg-yellow-50 transition-all duration-300 transform hover:-translate-y-1">
+      <div
+        class="p-4 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-xl mr-4 group-hover:from-yellow-600 group-hover:to-yellow-700 transition-all duration-200">
+        <i class="fas fa-bell text-white text-xl"></i>
+      </div>
+      <div>
+        <p class="font-semibold text-gray-900">Send Reminders</p>
+        <p class="text-sm text-gray-600">Notify unpaid tenants</p>
+      </div>
+    </a>
+
+    <a href="{{ url_for('main.reports') }}"
+      class="group flex items-center p-6 border-2 border-gray-200 rounded-xl hover:border-indigo-300 hover:bg-indigo-50 transition-all duration-300 transform hover:-translate-y-1">
+      <div
+        class="p-4 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-xl mr-4 group-hover:from-indigo-600 group-hover:to-indigo-700 transition-all duration-200">
+        <i class="fas fa-chart-bar text-white text-xl"></i>
+      </div>
+      <div>
+        <p class="font-semibold text-gray-900">Reports</p>
+        <p class="text-sm text-gray-600">Generate payment reports & receipts</p>
+      </div>
+    </a>
+
+    <a href="{{ url_for('main.send_reminders', type='late') }}"
+      class="group flex items-center p-6 border-2 border-gray-200 rounded-xl hover:border-red-300 hover:bg-red-50 transition-all duration-300 transform hover:-translate-y-1">
+      <div
+        class="p-4 bg-gradient-to-r from-red-500 to-red-600 rounded-xl mr-4 group-hover:from-red-600 group-hover:to-red-700 transition-all duration-200">
+        <i class="fas fa-exclamation-triangle text-white text-xl"></i>
+      </div>
+      <div>
+        <p class="font-semibold text-gray-900">Late Reminders</p>
+        <p class="text-sm text-gray-600">Send overdue payment alerts</p>
+      </div>
+    </a>
+
+    <a href="{{ url_for('main.send_notice') }}"
+      class="group flex items-center p-6 border-2 border-gray-200 rounded-xl hover:border-purple-300 hover:bg-purple-50 transition-all duration-300 transform hover:-translate-y-1">
+      <div
+        class="p-4 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl mr-4 group-hover:from-purple-600 group-hover:to-purple-700 transition-all duration-200">
+        <i class="fas fa-envelope text-white text-xl"></i>
+      </div>
+      <div>
+        <p class="font-semibold text-gray-900">Send Notice</p>
+        <p class="text-sm text-gray-600">Send custom messages</p>
+      </div>
+    </a>
+
+    <a href="{{ url_for('main.employees') }}"
+      class="group flex items-center p-6 border-2 border-gray-200 rounded-xl hover:border-indigo-300 hover:bg-indigo-50 transition-all duration-300 transform hover:-translate-y-1">
+      <div
+        class="p-4 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-xl mr-4 group-hover:from-indigo-600 group-hover:to-indigo-700 transition-all duration-200">
+        <i class="fas fa-users text-white text-xl"></i>
+      </div>
+      <div>
+        <p class="font-semibold text-gray-900">Manage Employees</p>
+        <p class="text-sm text-gray-600">Add employees to log payments</p>
+      </div>
+    </a>
+
+    <button onclick="showUpgradeModal()"
+      class="group flex items-center p-6 border-2 border-gray-200 rounded-xl hover:border-orange-300 hover:bg-orange-50 transition-all duration-300 transform hover:-translate-y-1">
+      <div
+        class="p-4 bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl mr-4 group-hover:from-orange-600 group-hover:to-orange-700 transition-all duration-200">
+        <i class="fas fa-arrow-up text-white text-xl"></i>
+      </div>
+      <div>
+        <p class="font-semibold text-gray-900">Upgrade Plan</p>
+        <!-- <p class="text-sm text-gray-600">View upgrade options</p> -->
+      </div>
+    </button>
+  </div>
+</div>
+
+<!-- Unit Management Section -->
+<div class="bg-white rounded-xl shadow-lg border border-gray-200 p-8 mt-8">
+  <div class="flex items-center justify-between mb-6">
+    <h3 class="text-2xl font-bold text-gray-900 flex items-center">
+      <i class="fas fa-door-open mr-3 text-blue-600"></i>Unit Management
+    </h3>
+    <button onclick="toggleUnitManagement()"
+      class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
+      <i class="fas fa-cog mr-2"></i>Manage Units
+    </button>
+  </div>
+
+  <!-- Unit Management Panel (Hidden by default) -->
+  <div id="unit-management-panel" class="hidden">
+    <!-- Property Selection for Adding Units -->
+    <div class="bg-gray-50 rounded-lg p-6 mb-6">
+      <h4 class="text-lg font-semibold text-gray-900 mb-4">Add Units to Property</h4>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Select Property</label>
+          <select id="property-select"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            <option value="">Choose a property...</option>
+            {% for property in properties %}
+            <option value="{{ property.id }}">{{ property.name }} - {{ property.location }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Unit Number</label>
+          <input type="text" id="unit-number" placeholder="e.g., A1, 101"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Monthly Rent (KES)</label>
+          <input type="number" id="unit-rent" placeholder="25000" step="0.01"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+      </div>
+      <div class="mt-4 flex space-x-3">
+        <button onclick="addSingleUnit()"
+          class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200">
+          <i class="fas fa-plus mr-2"></i>Add Unit
+        </button>
+        <button onclick="showBulkAddForm()"
+          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
+          <i class="fas fa-layer-group mr-2"></i>Bulk Add
+        </button>
+      </div>
+    </div>
+
+    <!-- Bulk Add Form (Hidden by default) -->
+    <div id="bulk-add-form" class="hidden bg-gray-50 rounded-lg p-6 mb-6">
+      <h4 class="text-lg font-semibold text-gray-900 mb-4">Bulk Add Units</h4>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Start Number</label>
+          <input type="number" id="bulk-start" placeholder="1"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">End Number</label>
+          <input type="number" id="bulk-end" placeholder="10"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Prefix (Optional)</label>
+          <input type="text" id="bulk-prefix" placeholder="A"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Rent Amount</label>
+          <input type="number" id="bulk-rent" placeholder="25000" step="0.01"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+      </div>
+      <div class="mt-4 flex space-x-3">
+        <button onclick="addBulkUnits()"
+          class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200">
+          <i class="fas fa-plus mr-2"></i>Create Units
+        </button>
+        <button onclick="hideBulkAddForm()"
+          class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200">
+          <i class="fas fa-times mr-2"></i>Cancel
+        </button>
+      </div>
+    </div>
+
+    <!-- Units Summary -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-blue-50 rounded-lg p-6">
+        <div class="flex items-center">
+          <div class="p-3 bg-blue-600 rounded-lg mr-4">
+            <i class="fas fa-door-open text-white text-xl"></i>
+          </div>
+          <div>
+            <p class="text-2xl font-bold text-blue-600">{{ total_units }}</p>
+            <p class="text-sm text-gray-600">Total Units</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-green-50 rounded-lg p-6">
+        <div class="flex items-center">
+          <div class="p-3 bg-green-600 rounded-lg mr-4">
+            <i class="fas fa-user text-white text-xl"></i>
+          </div>
+          <div>
+            <p class="text-2xl font-bold text-green-600">{{ total_paid }}</p>
+            <p class="text-sm text-gray-600">Occupied Units</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-gray-50 rounded-lg p-6">
+        <div class="flex items-center">
+          <div class="p-3 bg-gray-600 rounded-lg mr-4">
+            <i class="fas fa-home text-white text-xl"></i>
+          </div>
+          <div>
+            <p class="text-2xl font-bold text-gray-600">{{ total_units - total_paid }}</p>
+            <p class="text-sm text-gray-600">Vacant Units</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+  // Property collapse functionality
+  function toggleProperty(propertyId) {
+    const content = document.getElementById(`property-content-${propertyId}`);
+    const toggle = content.previousElementSibling.querySelector('.property-toggle i');
+
+    if (content.style.display === 'none') {
+      content.style.display = 'block';
+      toggle.style.transform = 'rotate(0deg)';
+    } else {
+      content.style.display = 'none';
+      toggle.style.transform = 'rotate(-90deg)';
+    }
+  }
+
+  // Unit management functionality
+  function toggleUnitManagement() {
+    const panel = document.getElementById('unit-management-panel');
+    panel.classList.toggle('hidden');
+  }
+
+  function showBulkAddForm() {
+    document.getElementById('bulk-add-form').classList.remove('hidden');
+  }
+
+  function hideBulkAddForm() {
+    document.getElementById('bulk-add-form').classList.add('hidden');
+  }
+
+  function addSingleUnit() {
+    const propertyId = document.getElementById('property-select').value;
+    const unitNumber = document.getElementById('unit-number').value;
+    const rentAmount = document.getElementById('unit-rent').value;
+
+    if (!propertyId || !unitNumber || !rentAmount) {
+      alert('Please fill in all fields');
+      return;
+    }
+
+    // Create form data and submit
+    const formData = new FormData();
+    formData.append('unit_number', unitNumber);
+    formData.append('rent_amount', rentAmount);
+
+    fetch(`/property/${propertyId}/add_unit`, {
+      method: 'POST',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: formData
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Unit added successfully!');
+          location.reload();
+        } else {
+          alert('Error adding unit: ' + data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error adding unit');
+      });
+  }
+
+  function addBulkUnits() {
+    const propertyId = document.getElementById('property-select').value;
+    const startNumber = document.getElementById('bulk-start').value;
+    const endNumber = document.getElementById('bulk-end').value;
+    const prefix = document.getElementById('bulk-prefix').value;
+    const rentAmount = document.getElementById('bulk-rent').value;
+
+    if (!propertyId || !startNumber || !endNumber || !rentAmount) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    // Create form data for bulk units
+    const formData = new FormData();
+    for (let i = parseInt(startNumber); i <= parseInt(endNumber); i++) {
+      const unitNumber = prefix ? `${prefix}${i}` : `${i}`;
+      formData.append('unit_number', unitNumber);
+      formData.append('rent_amount', rentAmount);
+    }
+
+    fetch(`/property/${propertyId}/add_unit`, {
+      method: 'POST',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: formData
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert(`${data.count} units added successfully!`);
+          location.reload();
+        } else {
+          alert('Error adding units: ' + data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error adding units');
+      });
+  }
+
+  function editUnit(unitId, unitNumber, rentAmount) {
+    const newUnitNumber = prompt('Enter new unit number:', unitNumber);
+    if (!newUnitNumber) return;
+
+    const newRentAmount = prompt('Enter new rent amount (KES):', rentAmount);
+    if (!newRentAmount) return;
+
+    const formData = new FormData();
+    formData.append('unit_number', newUnitNumber);
+    formData.append('rent_amount', newRentAmount);
+
+    fetch(`/unit/${unitId}/edit`, {
+      method: 'POST',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: formData
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Unit updated successfully!');
+          location.reload();
+        } else {
+          alert('Error updating unit: ' + data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating unit');
+      });
+  }
+
+  function deleteUnit(unitId) {
+    if (!confirm('Are you sure you want to delete this unit? This action cannot be undone.')) {
+      return;
+    }
+
+    fetch(`/unit/${unitId}/delete`, {
+      method: 'POST',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Unit deleted successfully!');
+          location.reload();
+        } else {
+          alert('Error deleting unit: ' + data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error deleting unit');
+      });
+  }
+
+  // Auto-collapse properties if there are more than 2
+  document.addEventListener('DOMContentLoaded', function () {
+    const propertyCards = document.querySelectorAll('.property-card');
+
+    if (propertyCards.length > 2) {
+      // Collapse all properties except the first one
+      propertyCards.forEach((card, index) => {
+        if (index > 0) {
+          const content = card.querySelector('.property-content');
+          const toggle = card.querySelector('.property-toggle i');
+          content.style.display = 'none';
+          toggle.style.transform = 'rotate(-90deg)';
+        }
+      });
+    }
+
+    // Animate stats cards on load
+    const statsCards = document.querySelectorAll('.grid > div');
+    statsCards.forEach((card, index) => {
+      setTimeout(() => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'all 0.5s ease';
+
+        setTimeout(() => {
+          card.style.opacity = '1';
+          card.style.transform = 'translateY(0)';
+        }, 100);
+      }, index * 100);
+    });
+
+    // Ensure sidebar is properly hidden on mobile
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar && window.innerWidth < 1024) {
+      sidebar.classList.add('-translate-x-full');
+    }
+  });
+
+  // Handle window resize for sidebar
+  window.addEventListener('resize', function () {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+      if (window.innerWidth < 1024) {
+        sidebar.classList.add('-translate-x-full');
+      } else {
+        sidebar.classList.remove('-translate-x-full');
+      }
+    }
+  });
+
+  // Enhanced search functionality
+  function setupUnitSearch() {
+    const searchInput = document.querySelector('input[name="unit_search"]');
+    if (searchInput) {
+      searchInput.addEventListener('input', function () {
+        const searchTerm = this.value.toLowerCase();
+        const unitCards = document.querySelectorAll('.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-3 > div');
+
+        unitCards.forEach(card => {
+          const unitNumberElement = card.querySelector('h3');
+          if (unitNumberElement) {
+            const unitNumber = unitNumberElement.textContent.toLowerCase();
+            if (unitNumber.includes(searchTerm)) {
+              card.style.display = 'block';
+              card.style.animation = 'fadeIn 0.3s ease-in-out';
+            } else {
+              card.style.display = 'none';
+            }
+          }
+        });
+      });
+    }
+  }
+
+  // Initialize search functionality
+  document.addEventListener('DOMContentLoaded', function () {
+    setupUnitSearch();
+  });
+
+  // Upgrade modal functionality
+  function showUpgradeModal() {
+    const modal = document.getElementById('upgradeModal');
+    if (modal) {
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function hideUpgradeModal() {
+    const modal = document.getElementById('upgradeModal');
+    if (modal) {
+      modal.classList.add('hidden');
+      document.body.style.overflow = 'auto';
+    }
+  }
+
+  // Show upgrade modal if limits are reached
+  {% if show_upgrade_modal and usage and current_plan %}
+  document.addEventListener('DOMContentLoaded', function () {
+    setTimeout(() => {
+      showUpgradeModal();
+    }, 1000);
+  });
+  {% endif %}
+</script>
+
+<!-- Upgrade Modal -->
+{% if usage and current_plan %}
+<div id="upgradeModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+  <div class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <!-- Modal Header -->
+      <div class="gradient-bg text-white px-8 py-6 rounded-t-2xl">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <i class="fas fa-exclamation-triangle text-2xl mr-3"></i>
+            <h2 class="text-2xl font-bold">Plan Limit Reached</h2>
+          </div>
+          <button onclick="hideUpgradeModal()" class="text-white hover:text-gray-200 transition-colors">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+        <p class="text-blue-100 mt-2">Upgrade your plan to continue growing your property portfolio</p>
+      </div>
+
+      <!-- Modal Content -->
+      <div class="p-8">
+        <!-- Current Plan Status -->
+        <div class="bg-gray-50 rounded-xl p-6 mb-6">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-xl font-bold text-gray-900">Current Plan: {{ current_plan.name }}</h3>
+              <p class="text-gray-600">You're currently on the {{ current_plan.code|title }} plan</p>
+            </div>
+            <span class="px-4 py-2 rounded-full text-sm font-medium 
+                {% if current_plan.code == 'basic' %}bg-blue-100 text-blue-800
+                {% elif current_plan.code == 'professional' %}bg-purple-100 text-purple-800
+                {% else %}bg-gray-100 text-gray-800{% endif %}">
+              {{ current_plan.code|title }}
+            </span>
+          </div>
+
+          <!-- Usage Stats -->
+          {% if usage and current_plan %}
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white rounded-lg p-4 border border-gray-200">
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="font-semibold text-gray-900">
+                  <i class="fas fa-building text-blue-600 mr-2"></i>
+                  Properties
+                </h4>
+                <span class="text-sm font-medium text-blue-700">{{ usage.properties_count|default(0) }}/{{
+                  current_plan.max_properties|default(0) }}</span>
+              </div>
+              <div class="w-full bg-blue-200 rounded-full h-2 mb-1">
+                <div class="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                  style="width: {{ ((usage.properties_count|default(0)) / (current_plan.max_properties|default(1)) * 100)|round }}%">
+                </div>
+              </div>
+              <p class="text-blue-600 text-xs">{{ (current_plan.max_properties|default(0)) -
+                (usage.properties_count|default(0)) }} remaining</p>
+            </div>
+
+            <div class="bg-white rounded-lg p-4 border border-gray-200">
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="font-semibold text-gray-900">
+                  <i class="fas fa-home text-green-600 mr-2"></i>
+                  Units
+                </h4>
+                <span class="text-sm font-medium text-green-700">{{ usage.units_count|default(0) }} total</span>
+              </div>
+              <p class="text-green-600 text-xs">Across all properties</p>
+            </div>
+
+            <div class="bg-white rounded-lg p-4 border border-gray-200">
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="font-semibold text-gray-900">
+                  <i class="fas fa-sms text-purple-600 mr-2"></i>
+                  SMS This Month
+                </h4>
+                <span class="text-sm font-medium text-purple-700">{{ usage.sms_sent|default(0) }}/{{
+                  current_plan.max_sms_per_month|default(0) }}</span>
+              </div>
+              <div class="w-full bg-purple-200 rounded-full h-2 mb-1">
+                <div class="bg-purple-600 h-2 rounded-full transition-all duration-500"
+                  style="width: {{ ((usage.sms_sent|default(0)) / (current_plan.max_sms_per_month|default(1)) * 100)|round }}%">
+                </div>
+              </div>
+            </div>
+          </div>
+          {% else %}
+          <div class="text-center py-4">
+            <p class="text-gray-500">Loading usage data...</p>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Upgrade Options -->
+        {% if current_plan.code == 'basic' %}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <!-- Professional Plan -->
+          <div class="bg-white rounded-xl shadow-lg border-2 border-purple-500 overflow-hidden relative">
+            <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
+              <span class="bg-purple-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+                <i class="fas fa-star mr-1"></i>Recommended
+              </span>
+            </div>
+
+            <div class="gradient-bg px-6 py-4">
+              <h3 class="text-xl font-bold text-white">Professional</h3>
+              <p class="text-white text-opacity-90 text-sm">Perfect for growing portfolios</p>
+            </div>
+
+            <div class="p-6">
+              <div class="text-center mb-4">
+                <div class="text-3xl font-bold text-gray-900 mb-1">KES 1,200</div>
+                <div class="text-gray-600 text-sm">per month</div>
+              </div>
+
+              <ul class="space-y-2 mb-4 text-sm">
+                <li class="flex items-center">
+                  <i class="fas fa-check text-green-500 mr-2"></i>
+                  <span class="text-gray-700">Up to 20 properties</span>
+                </li>
+                <li class="flex items-center">
+                  <i class="fas fa-check text-green-500 mr-2"></i>
+                  <span class="text-gray-700">Up to 200 units per property</span>
+                </li>
+                <li class="flex items-center">
+                  <i class="fas fa-check text-green-500 mr-2"></i>
+                  <span class="text-gray-700">200 SMS per month</span>
+                </li>
+                <li class="flex items-center">
+                  <i class="fas fa-check text-green-500 mr-2"></i>
+                  <span class="text-gray-700">PDF receipts & invoices</span>
+                </li>
+                <li class="flex items-center">
+                  <i class="fas fa-check text-green-500 mr-2"></i>
+                  <span class="text-gray-700">Exit notice management</span>
+                </li>
+                <li class="flex items-center">
+                  <i class="fas fa-check text-green-500 mr-2"></i>
+                  <span class="text-gray-700">API access</span>
+                </li>
+              </ul>
+
+              <a href="{{ url_for('main.upgrade_plan', plan='professional') }}"
+                class="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-2 px-4 rounded-lg font-semibold hover:from-purple-700 hover:to-purple-800 transition-all duration-200 text-center block text-sm">
+                <i class="fas fa-credit-card mr-2"></i>
+                Upgrade to Professional
+              </a>
+            </div>
+          </div>
+
+          <!-- Enterprise Plan -->
+          <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+            <div class="bg-gradient-to-r from-gray-700 to-gray-800 px-6 py-4">
+              <h3 class="text-xl font-bold text-white">Enterprise</h3>
+              <p class="text-gray-300 text-sm">For large property companies</p>
+            </div>
+
+            <div class="p-6">
+              <div class="text-center mb-4">
+                <div class="text-3xl font-bold text-gray-900 mb-1">Custom</div>
+                <div class="text-gray-600 text-sm">Contact us for pricing</div>
+              </div>
+
+              <ul class="space-y-2 mb-4 text-sm">
+                <li class="flex items-center">
+                  <i class="fas fa-check text-green-500 mr-2"></i>
+                  <span class="text-gray-700">Unlimited properties</span>
+                </li>
+                <li class="flex items-center">
+                  <i class="fas fa-check text-green-500 mr-2"></i>
+                  <span class="text-gray-700">Unlimited units</span>
+                </li>
+                <li class="flex items-center">
+                  <i class="fas fa-check text-green-500 mr-2"></i>
+                  <span class="text-gray-700">Custom integrations</span>
+                </li>
+                <li class="flex items-center">
+                  <i class="fas fa-check text-green-500 mr-2"></i>
+                  <span class="text-gray-700">White-label solution</span>
+                </li>
+                <li class="flex items-center">
+                  <i class="fas fa-check text-green-500 mr-2"></i>
+                  <span class="text-gray-700">Dedicated support</span>
+                </li>
+              </ul>
+
+              <a href="{{ url_for('main.upgrade_plan', plan='enterprise') }}"
+                class="w-full bg-gray-700 text-white py-2 px-4 rounded-lg font-semibold hover:bg-gray-800 transition-colors duration-200 text-center block text-sm">
+                <i class="fas fa-credit-card mr-2"></i>
+                Upgrade to Enterprise
+              </a>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Modal Footer -->
+        <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+          <button onclick="hideUpgradeModal()" class="text-gray-600 hover:text-gray-800 transition-colors">
+            <i class="fas fa-times mr-2"></i>
+            Maybe Later
+          </button>
+          <a href="{{ url_for('main.upgrade') }}"
+            class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+            <i class="fas fa-external-link-alt mr-2"></i>
+            View Full Upgrade Page
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .gradient-bg {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+</style>
+{% endif %}
+{% endblock %}

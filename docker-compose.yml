@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: smartbiller
+    restart: always
+    ports:
+      - "5020:8080"
+    env_file: .env                 # ✅ load .env variables into container
+    depends_on:
+      - db                         # ✅ wait for Postgres before booting
+    environment:
+      - DATABASE_URL=postgresql://smartbiller:smartbiller254!@db:5432/smartbiller
+    volumes:
+      - ./app/static:/app/app/static  # Optional: for persistent uploads, images, etc.
+    networks:
+      - smartbiller-net
+
+  db:
+    image: postgres:14
+    container_name: smartbiller_db
+    restart: always
+    environment:
+      POSTGRES_DB: smartbiller
+      POSTGRES_USER: smartbiller
+      POSTGRES_PASSWORD: smartbiller254!
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - smartbiller-net
+
+volumes:
+  postgres_data:
+
+networks:
+  smartbiller-net:

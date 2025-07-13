@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto p-6">
+    <h1 class="text-3xl font-bold text-gray-900 mb-4">Test Employees Page</h1>
+    <p class="text-gray-600 mb-4">This is a test page to see if the template is working.</p>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold mb-4">Debug Information</h2>
+        <ul class="space-y-2">
+            <li><strong>Landlord:</strong> {{ landlord.name }}</li>
+            <li><strong>Employee Count:</strong> {{ employees|length }}</li>
+            <li><strong>Template:</strong> employees.html</li>
+        </ul>
+    </div>
+
+    <div class="mt-6">
+        <a href="{{ url_for('main.dashboard') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

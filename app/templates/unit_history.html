@@ -1,0 +1,801 @@
+{% extends "base.html" %}
+
+{% block dashboard_content %}
+<div class="max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Unit History</h1>
+        <p class="text-gray-600">Payment history for {{ unit.unit_number }} at {{ unit.property.name }}</p>
+      </div>
+      <div class="flex space-x-3">
+        <button onclick="exportHistory()"
+          class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200">
+          <i class="fas fa-download mr-2"></i>Export
+        </button>
+        <a href="{{ url_for('main.dashboard') }}"
+          class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors duration-200">
+          <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Unit Info Card -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div class="flex items-center">
+        <div class="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
+          <i class="fas fa-home text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-600">Unit Number</p>
+          <p class="text-lg font-semibold text-gray-900">{{ unit.unit_number }}</p>
+        </div>
+      </div>
+
+      <div class="flex items-center">
+        <div class="p-3 rounded-full bg-green-100 text-green-600 mr-4">
+          <i class="fas fa-building text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-600">Property</p>
+          <p class="text-lg font-semibold text-gray-900">{{ unit.property.name }}</p>
+        </div>
+      </div>
+
+      <div class="flex items-center">
+        <div class="p-3 rounded-full bg-purple-100 text-purple-600 mr-4">
+          <i class="fas fa-money-bill-wave text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-600">Monthly Rent</p>
+          <p class="text-lg font-semibold text-gray-900">KES {{ "%.2f"|format(unit.rent_amount) }}</p>
+        </div>
+      </div>
+
+      <div class="flex items-center">
+        <div class="p-3 rounded-full bg-orange-100 text-orange-600 mr-4">
+          <i class="fas fa-user text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-600">Current Tenant</p>
+          <p class="text-lg font-semibold text-gray-900">
+            {% if tenant %}
+            {{ tenant.name }}
+            {% else %}
+            <span class="text-gray-400">Vacant</span>
+            {% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Controls -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">
+      <i class="fas fa-filter mr-2"></i>Filter History
+    </h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+        <select id="statusFilter"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <option value="">All Statuses</option>
+          <option value="Paid">Paid</option>
+          <option value="Partial">Partial</option>
+          <option value="Unpaid">Unpaid</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
+        <select id="dateFilter"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <option value="">All Time</option>
+          <option value="30">Last 30 Days</option>
+          <option value="90">Last 3 Months</option>
+          <option value="180">Last 6 Months</option>
+          <option value="365">Last Year</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Logged By</label>
+        <select id="loggedByFilter"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <option value="">All Users</option>
+          <option value="landlord">Landlord</option>
+          <option value="employee">Employee</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Amount Range</label>
+        <select id="amountFilter"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <option value="">All Amounts</option>
+          <option value="0-10000">KES 0 - 10,000</option>
+          <option value="10000-25000">KES 10,000 - 25,000</option>
+          <option value="25000-50000">KES 25,000 - 50,000</option>
+          <option value="50000+">KES 50,000+</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Payment Type</label>
+        <select id="paymentTypeFilter"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <option value="">All Types</option>
+          <option value="full">Full Payment</option>
+          <option value="installment">Installment</option>
+          <option value="overpayment">Overpayment</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+        <input type="text" id="searchFilter" placeholder="Search notes, month..."
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+      </div>
+    </div>
+
+    <!-- Advanced Filters Toggle -->
+    <div class="mt-4">
+      <button id="advancedFiltersToggle" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+        <i class="fas fa-cog mr-1"></i>Advanced Filters
+      </button>
+    </div>
+
+    <!-- Advanced Filters (Hidden by default) -->
+    <div id="advancedFilters" class="hidden mt-4 pt-4 border-t border-gray-200">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Month/Year</label>
+          <input type="month" id="monthFilter"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Has Notes</label>
+          <select id="notesFilter"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <option value="">All</option>
+            <option value="with_notes">With Notes</option>
+            <option value="without_notes">Without Notes</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+          <select id="sortFilter"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <option value="date_desc">Date (Newest First)</option>
+            <option value="date_asc">Date (Oldest First)</option>
+            <option value="amount_desc">Amount (High to Low)</option>
+            <option value="amount_asc">Amount (Low to High)</option>
+            <option value="status">Status</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment History -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
+      <h2 class="text-xl font-bold text-white">
+        <i class="fas fa-history mr-2"></i>Payment History
+      </h2>
+    </div>
+
+    <div class="p-6">
+      {% if history %}
+      <div class="overflow-x-auto">
+        <table class="w-full" id="historyTable">
+          <thead>
+            <tr class="border-b border-gray-200">
+              <th class="text-left py-3 px-4 font-semibold text-gray-700">Date Paid</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700">Month</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700">Amount Paid</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700">Logged By</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700">Notes</th>
+              <th class="text-left py-3 px-4 font-semibold text-gray-700">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in history %}
+            <tr class="border-b border-gray-100 hover:bg-gray-50 history-row" data-status="{{ log.status }}"
+              data-date="{{ log.date_paid.strftime('%Y-%m-%d') }}"
+              data-logged-by="{% if log.logged_by_employee %}employee{% else %}landlord{% endif %}"
+              data-notes="{{ log.notes or '' }}" data-month="{{ log.month_paid_for }}">
+              <td class="py-3 px-4">
+                <div class="flex items-center">
+                  <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                  {{ log.date_paid.strftime('%Y-%m-%d') }}
+                </div>
+              </td>
+              <td class="py-3 px-4 font-medium">{{ log.month_paid_for }}</td>
+              <td class="py-3 px-4 font-semibold text-green-600">
+                KES {{ "%.2f"|format(log.amount_paid) }}
+              </td>
+              <td class="py-3 px-4">
+                {% if log.status == 'Paid' %}
+                <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                  <i class="fas fa-check mr-1"></i>Paid
+                </span>
+                {% elif log.status == 'Partial' %}
+                <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                  <i class="fas fa-exclamation mr-1"></i>Partial
+                </span>
+                {% else %}
+                <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                  <i class="fas fa-times mr-1"></i>Unpaid
+                </span>
+                {% endif %}
+              </td>
+              <td class="py-3 px-4">
+                {% if log.logged_by_employee %}
+                <div class="flex items-center">
+                  <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2">
+                    <i class="fas fa-user-tie text-blue-600 text-xs"></i>
+                  </div>
+                  <div>
+                    <span class="font-medium text-gray-900">{{ log.logged_by_employee.name }}</span>
+                    <p class="text-xs text-gray-500">{{ log.logged_by_employee.position }}</p>
+                  </div>
+                </div>
+                {% else %}
+                <div class="flex items-center">
+                  <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-2">
+                    <i class="fas fa-user text-green-600 text-xs"></i>
+                  </div>
+                  <span class="font-medium text-gray-900">Landlord</span>
+                </div>
+                {% endif %}
+              </td>
+              <td class="py-3 px-4">
+                {% if log.notes %}
+                <div class="max-w-xs">
+                  <div class="text-sm text-gray-700 truncate" title="{{ log.notes }}">
+                    {{ log.notes[:50] }}{% if log.notes|length > 50 %}...{% endif %}
+                  </div>
+                  {% if log.notes|length > 50 %}
+                  <button onclick="showNotes('{{ log.notes|replace("'", "\\'")|replace('"', ' \\"') }}')"
+                    class="text-blue-600 hover:text-blue-800 text-xs font-medium">
+                    View Full
+                  </button>
+                  {% endif %}
+                </div>
+                {% else %}
+                <span class="text-gray-400 text-sm">No notes</span>
+                {% endif %}
+              </td>
+              <td class="py-3 px-4">
+                <div class="flex space-x-2">
+                  <a href="{{ url_for('main.tenant_receipt', rentlog_id=log.id) }}"
+                    class="text-blue-600 hover:text-blue-800 font-medium text-sm">
+                    <i class="fas fa-download mr-1"></i>Receipt
+                  </a>
+                  {% if tenant %}
+                  <a href="{{ url_for('main.log_rent', tenant_id=tenant.id) }}"
+                    class="text-green-600 hover:text-green-800 font-medium text-sm">
+                    <i class="fas fa-plus mr-1"></i>Log Payment
+                  </a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Summary Stats -->
+      <div class="mt-8 grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+          <div class="flex items-center">
+            <div class="p-2 bg-blue-100 rounded-lg mr-3">
+              <i class="fas fa-calendar-check text-blue-600"></i>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-blue-600">Total Payments</p>
+              <p class="text-2xl font-bold text-blue-900" id="totalPayments">{{ history|length }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-green-50 rounded-lg p-4 border border-green-200">
+          <div class="flex items-center">
+            <div class="p-2 bg-green-100 rounded-lg mr-3">
+              <i class="fas fa-money-bill-wave text-green-600"></i>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-green-600">Total Collected</p>
+              <p class="text-2xl font-bold text-green-900" id="totalCollected">
+                KES {{ "%.2f"|format(history|sum(attribute='amount_paid')) }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-purple-50 rounded-lg p-4 border border-purple-200">
+          <div class="flex items-center">
+            <div class="p-2 bg-purple-100 rounded-lg mr-3">
+              <i class="fas fa-chart-line text-purple-600"></i>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-purple-600">Average Payment</p>
+              <p class="text-2xl font-bold text-purple-900" id="averagePayment">
+                {% if history %}
+                KES {{ "%.2f"|format((history|sum(attribute='amount_paid')) / history|length) }}
+                {% else %}
+                KES 0.00
+                {% endif %}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-orange-50 rounded-lg p-4 border border-orange-200">
+          <div class="flex items-center">
+            <div class="p-2 bg-orange-100 rounded-lg mr-3">
+              <i class="fas fa-percentage text-orange-600"></i>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-orange-600">Payment Rate</p>
+              <p class="text-2xl font-bold text-orange-900" id="paymentRate">
+                {% set paid_count = history|selectattr('status', 'equalto', 'Paid')|list|length %}
+                {% if history %}
+                {{ "%.1f"|format((paid_count / history|length) * 100) }}%
+                {% else %}
+                0%
+                {% endif %}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Analytics Dashboard -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">
+          <i class="fas fa-chart-line mr-2"></i>Payment Analytics
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- Payment Trends -->
+          <div class="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+            <h4 class="font-semibold text-blue-900 mb-3">Payment Trends</h4>
+            <div class="space-y-2">
+              <div class="flex justify-between">
+                <span class="text-sm text-blue-700">On-time Payments:</span>
+                <span class="font-semibold text-blue-900">
+                  {% set on_time = history|selectattr('status', 'equalto', 'Paid')|list|length %}
+                  {{ on_time }}
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-sm text-blue-700">Late Payments:</span>
+                <span class="font-semibold text-blue-900">
+                  {% set late = history|selectattr('status', 'equalto', 'Partial')|list|length %}
+                  {{ late }}
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-sm text-blue-700">Missed Payments:</span>
+                <span class="font-semibold text-blue-900">
+                  {% set missed = history|selectattr('status', 'equalto', 'Unpaid')|list|length %}
+                  {{ missed }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment Frequency -->
+          <div class="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+            <h4 class="font-semibold text-green-900 mb-3">Payment Frequency</h4>
+            <div class="space-y-2">
+              <div class="flex justify-between">
+                <span class="text-sm text-green-700">Avg Days Between:</span>
+                <span class="font-semibold text-green-900">
+                  {% if history|length > 1 %}
+                  {% set dates = history|map(attribute='date_paid')|list|sort %}
+                  {% set total_days = 0 %}
+                  {% for i in range(dates|length - 1) %}
+                  {% set days = (dates[i+1] - dates[i]).days %}
+                  {% set total_days = total_days + days %}
+                  {% endfor %}
+                  {{ (total_days / (dates|length - 1))|round(1) }}
+                  {% else %}
+                  N/A
+                  {% endif %}
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-sm text-green-700">Installments:</span>
+                <span class="font-semibold text-green-900">
+                  {% set months = history|map(attribute='month_paid_for')|list %}
+                  {% set unique_months = months|unique|list %}
+                  {{ history|length - unique_months|length }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment Performance -->
+          <div class="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+            <h4 class="font-semibold text-purple-900 mb-3">Performance</h4>
+            <div class="space-y-2">
+              <div class="flex justify-between">
+                <span class="text-sm text-purple-700">Reliability Score:</span>
+                <span class="font-semibold text-purple-900">
+                  {% set paid_count = history|selectattr('status', 'equalto', 'Paid')|list|length %}
+                  {% if history %}
+                  {{ ((paid_count / history|length) * 100)|round(1) }}%
+                  {% else %}
+                  0%
+                  {% endif %}
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-sm text-purple-700">Avg Payment:</span>
+                <span class="font-semibold text-purple-900">
+                  {% if history %}
+                  KES {{ ((history|sum(attribute='amount_paid')) / history|length)|round(0) }}
+                  {% else %}
+                  KES 0
+                  {% endif %}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="text-center py-12">
+        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="fas fa-file-alt text-2xl text-gray-400"></i>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">No Payment History</h3>
+        <p class="text-gray-600 mb-6">No rent payments have been recorded for this unit yet.</p>
+        {% if tenant %}
+        <a href="{{ url_for('main.log_rent', tenant_id=tenant.id) }}"
+          class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200">
+          <i class="fas fa-plus mr-2"></i>Log First Payment
+        </a>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  {% if tenant %}
+  <div class="mt-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <a href="{{ url_for('main.log_rent', tenant_id=tenant.id) }}"
+        class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+        <div class="p-2 bg-green-100 rounded-lg mr-3">
+          <i class="fas fa-plus text-green-600"></i>
+        </div>
+        <div>
+          <p class="font-medium text-gray-900">Log Payment</p>
+          <p class="text-sm text-gray-600">Record a new rent payment</p>
+        </div>
+      </a>
+
+      <a href="{{ url_for('main.update_tenant', tenant_id=tenant.id) }}"
+        class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+        <div class="p-2 bg-blue-100 rounded-lg mr-3">
+          <i class="fas fa-edit text-blue-600"></i>
+        </div>
+        <div>
+          <p class="font-medium text-gray-900">Update Tenant</p>
+          <p class="text-sm text-gray-600">Edit tenant information</p>
+        </div>
+      </a>
+
+      <a href="{{ url_for('main.send_notice') }}"
+        class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+        <div class="p-2 bg-purple-100 rounded-lg mr-3">
+          <i class="fas fa-bell text-purple-600"></i>
+        </div>
+        <div>
+          <p class="font-medium text-gray-900">Send Notice</p>
+          <p class="text-sm text-gray-600">Send SMS notification</p>
+        </div>
+      </a>
+
+      <button onclick="generatePaymentReport()"
+        class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+        <div class="p-2 bg-orange-100 rounded-lg mr-3">
+          <i class="fas fa-file-pdf text-orange-600"></i>
+        </div>
+        <div>
+          <p class="font-medium text-gray-900">Generate Report</p>
+          <p class="text-sm text-gray-600">Create PDF payment report</p>
+        </div>
+      </button>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Notes Modal -->
+<div id="notesModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+  <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div class="mt-3">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">Payment Notes</h3>
+      <div class="bg-gray-50 p-4 rounded-lg">
+        <p id="notesContent" class="text-gray-700 whitespace-pre-wrap"></p>
+      </div>
+      <div class="mt-4 flex justify-end">
+        <button onclick="closeNotes()"
+          class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors duration-200">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Filter functionality
+  document.getElementById('statusFilter').addEventListener('change', filterHistory);
+  document.getElementById('dateFilter').addEventListener('change', filterHistory);
+  document.getElementById('loggedByFilter').addEventListener('change', filterHistory);
+  document.getElementById('searchFilter').addEventListener('input', filterHistory);
+  document.getElementById('amountFilter').addEventListener('change', filterHistory);
+  document.getElementById('paymentTypeFilter').addEventListener('change', filterHistory);
+  document.getElementById('monthFilter').addEventListener('change', filterHistory);
+  document.getElementById('notesFilter').addEventListener('change', filterHistory);
+  document.getElementById('sortFilter').addEventListener('change', sortHistory);
+
+  // Advanced filters toggle
+  document.getElementById('advancedFiltersToggle').addEventListener('click', function () {
+    const advancedFilters = document.getElementById('advancedFilters');
+    const toggle = document.getElementById('advancedFiltersToggle');
+
+    if (advancedFilters.classList.contains('hidden')) {
+      advancedFilters.classList.remove('hidden');
+      toggle.innerHTML = '<i class="fas fa-times mr-1"></i>Hide Advanced Filters';
+    } else {
+      advancedFilters.classList.add('hidden');
+      toggle.innerHTML = '<i class="fas fa-cog mr-1"></i>Advanced Filters';
+    }
+  });
+
+  function filterHistory() {
+    const statusFilter = document.getElementById('statusFilter').value;
+    const dateFilter = document.getElementById('dateFilter').value;
+    const loggedByFilter = document.getElementById('loggedByFilter').value;
+    const searchFilter = document.getElementById('searchFilter').value.toLowerCase();
+    const amountFilter = document.getElementById('amountFilter').value;
+    const paymentTypeFilter = document.getElementById('paymentTypeFilter').value;
+    const monthFilter = document.getElementById('monthFilter').value;
+    const notesFilter = document.getElementById('notesFilter').value;
+
+    const rows = document.querySelectorAll('.history-row');
+    let visibleCount = 0;
+    let totalAmount = 0;
+    let paidCount = 0;
+
+    rows.forEach(row => {
+      let show = true;
+
+      // Status filter
+      if (statusFilter && row.dataset.status !== statusFilter) {
+        show = false;
+      }
+
+      // Date filter
+      if (dateFilter && show) {
+        const paymentDate = new Date(row.dataset.date);
+        const daysAgo = Math.floor((Date.now() - paymentDate.getTime()) / (1000 * 60 * 60 * 24));
+        if (daysAgo > parseInt(dateFilter)) {
+          show = false;
+        }
+      }
+
+      // Logged by filter
+      if (loggedByFilter && show) {
+        if (loggedByFilter === 'landlord' && row.dataset.loggedBy !== 'landlord') {
+          show = false;
+        } else if (loggedByFilter === 'employee' && row.dataset.loggedBy !== 'employee') {
+          show = false;
+        }
+      }
+
+      // Search filter
+      if (searchFilter && show) {
+        const notes = row.dataset.notes.toLowerCase();
+        const month = row.dataset.month.toLowerCase();
+        if (!notes.includes(searchFilter) && !month.includes(searchFilter)) {
+          show = false;
+        }
+      }
+
+      // Amount filter
+      if (amountFilter && show) {
+        const amountCell = row.querySelector('td:nth-child(3)');
+        const amount = parseFloat(amountCell.textContent.replace('KES ', '').replace(',', ''));
+
+        switch (amountFilter) {
+          case '0-10000':
+            if (amount < 0 || amount > 10000) show = false;
+            break;
+          case '10000-25000':
+            if (amount < 10000 || amount > 25000) show = false;
+            break;
+          case '25000-50000':
+            if (amount < 25000 || amount > 50000) show = false;
+            break;
+          case '50000+':
+            if (amount < 50000) show = false;
+            break;
+        }
+      }
+
+      // Payment type filter
+      if (paymentTypeFilter && show) {
+        const notes = row.dataset.notes.toLowerCase();
+        const amountCell = row.querySelector('td:nth-child(3)');
+        const amount = parseFloat(amountCell.textContent.replace('KES ', '').replace(',', ''));
+        const monthlyRent = {{ unit.rent_amount }};
+
+      switch (paymentTypeFilter) {
+        case 'full':
+          if (amount !== monthlyRent) show = false;
+          break;
+        case 'installment':
+          if (!notes.includes('installment')) show = false;
+          break;
+        case 'overpayment':
+          if (amount <= monthlyRent) show = false;
+          break;
+      }
+    }
+
+      // Month filter
+      if (monthFilter && show) {
+      const paymentDate = new Date(row.dataset.date);
+      const filterDate = new Date(monthFilter + '-01');
+      if (paymentDate.getFullYear() !== filterDate.getFullYear() ||
+        paymentDate.getMonth() !== filterDate.getMonth()) {
+        show = false;
+      }
+    }
+
+    // Notes filter
+    if (notesFilter && show) {
+      const hasNotes = row.dataset.notes && row.dataset.notes.trim() !== '';
+      switch (notesFilter) {
+        case 'with_notes':
+          if (!hasNotes) show = false;
+          break;
+        case 'without_notes':
+          if (hasNotes) show = false;
+          break;
+      }
+    }
+
+    if (show) {
+      row.style.display = '';
+      visibleCount++;
+
+      // Calculate totals
+      const amountCell = row.querySelector('td:nth-child(3)');
+      const amount = parseFloat(amountCell.textContent.replace('KES ', '').replace(',', ''));
+      totalAmount += amount;
+
+      if (row.dataset.status === 'Paid') {
+        paidCount++;
+      }
+    } else {
+      row.style.display = 'none';
+    }
+  });
+
+  // Update summary stats
+  document.getElementById('totalPayments').textContent = visibleCount;
+  document.getElementById('totalCollected').textContent = `KES ${totalAmount.toFixed(2)}`;
+  document.getElementById('averagePayment').textContent = visibleCount > 0 ? `KES ${(totalAmount / visibleCount).toFixed(2)}` : 'KES 0.00';
+  document.getElementById('paymentRate').textContent = visibleCount > 0 ? `${((paidCount / visibleCount) * 100).toFixed(1)}%` : '0%';
+  }
+
+  function sortHistory() {
+    const sortFilter = document.getElementById('sortFilter').value;
+    const tbody = document.querySelector('#historyTable tbody');
+    const rows = Array.from(tbody.querySelectorAll('.history-row:not([style*="display: none"])'));
+
+    rows.sort((a, b) => {
+      switch (sortFilter) {
+        case 'date_desc':
+          return new Date(b.dataset.date) - new Date(a.dataset.date);
+        case 'date_asc':
+          return new Date(a.dataset.date) - new Date(b.dataset.date);
+        case 'amount_desc':
+          const amountA = parseFloat(a.querySelector('td:nth-child(3)').textContent.replace('KES ', '').replace(',', ''));
+          const amountB = parseFloat(b.querySelector('td:nth-child(3)').textContent.replace('KES ', '').replace(',', ''));
+          return amountB - amountA;
+        case 'amount_asc':
+          const amountA2 = parseFloat(a.querySelector('td:nth-child(3)').textContent.replace('KES ', '').replace(',', ''));
+          const amountB2 = parseFloat(b.querySelector('td:nth-child(3)').textContent.replace('KES ', '').replace(',', ''));
+          return amountA2 - amountB2;
+        case 'status':
+          const statusA = a.dataset.status;
+          const statusB = b.dataset.status;
+          return statusA.localeCompare(statusB);
+        default:
+          return 0;
+      }
+    });
+
+    // Reorder rows in the table
+    rows.forEach(row => tbody.appendChild(row));
+  }
+
+  function showNotes(notes) {
+    document.getElementById('notesContent').textContent = notes;
+    document.getElementById('notesModal').classList.remove('hidden');
+  }
+
+  function closeNotes() {
+    document.getElementById('notesModal').classList.add('hidden');
+  }
+
+  function exportHistory() {
+    const rows = document.querySelectorAll('.history-row:not([style*="display: none"])');
+    let csv = 'Date Paid,Month,Amount Paid,Status,Logged By,Notes\n';
+
+    rows.forEach(row => {
+      const date = row.querySelector('td:nth-child(1)').textContent.trim();
+      const month = row.querySelector('td:nth-child(2)').textContent.trim();
+      const amount = row.querySelector('td:nth-child(3)').textContent.trim();
+      const status = row.querySelector('td:nth-child(4) span').textContent.trim();
+      const loggedBy = row.querySelector('td:nth-child(5) span').textContent.trim();
+      const notes = row.dataset.notes || '';
+
+      csv += `"${date}","${month}","${amount}","${status}","${loggedBy}","${notes}"\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `unit_history_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  function generatePaymentReport() {
+    const rows = document.querySelectorAll('.history-row:not([style*="display: none"])');
+    let reportData = 'Payment Report for Unit ' + {{ unit.unit_number }} + ' at ' + {{ unit.property.name }} + '\n\n';
+  reportData += 'Date Paid,Month,Amount Paid,Status,Logged By,Notes\n';
+
+  rows.forEach(row => {
+    const date = row.querySelector('td:nth-child(1)').textContent.trim();
+    const month = row.querySelector('td:nth-child(2)').textContent.trim();
+    const amount = row.querySelector('td:nth-child(3)').textContent.trim();
+    const status = row.querySelector('td:nth-child(4) span').textContent.trim();
+    const loggedBy = row.querySelector('td:nth-child(5) span').textContent.trim();
+    const notes = row.dataset.notes || '';
+
+    reportData += `"${date}","${month}","${amount}","${status}","${loggedBy}","${notes}"\n`;
+  });
+
+  const blob = new Blob([reportData], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `payment_report_unit_${{ unit.unit_number }}_at_{{ unit.property.name }}.csv`;
+  a.click();
+  window.URL.revokeObjectURL(url);
+  }
+
+  // Close modal when clicking outside
+  document.getElementById('notesModal').addEventListener('click', function (e) {
+    if (e.target === this) {
+      closeNotes();
+    }
+  });
+</script>
+{% endblock %}

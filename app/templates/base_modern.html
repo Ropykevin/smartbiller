@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SmartBiller</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .chatbot-btn {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            z-index: 50;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .chatbot-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+        }
+
+        .chatbot-window {
+            position: fixed;
+            bottom: 100px;
+            right: 32px;
+            width: 380px;
+            max-width: 95vw;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            z-index: 40;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+        }
+
+        .chatbot-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .chatbot-messages {
+            padding: 1rem;
+            height: 300px;
+            overflow-y: auto;
+            background: #f8fafc;
+        }
+
+        .chatbot-input {
+            display: flex;
+            border-top: 1px solid #e5e7eb;
+            background: white;
+        }
+
+        .chatbot-input input {
+            flex: 1;
+            border: none;
+            padding: 0.75rem;
+            outline: none;
+            font-size: 1rem;
+            border-radius: 0 0 0 1rem;
+        }
+
+        .chatbot-input button {
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0 1.5rem;
+            font-size: 1.2rem;
+            border-radius: 0 0 1rem 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .chatbot-input button:hover {
+            opacity: 0.9;
+        }
+
+        .chatbot-msg-user {
+            text-align: right;
+            margin-bottom: 0.5rem;
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .chatbot-msg-bot {
+            text-align: left;
+            margin-bottom: 0.5rem;
+            color: #374151;
+            background: white;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+    {% block pagestyle %}{% endblock %}
+</head>
+
+<body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-30 glass-effect">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center">
+                    <a href="/" class="text-2xl font-bold text-white">
+                        <i class="fas fa-home mr-2"></i>SmartBiller
+                    </a>
+                </div>
+
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="/"
+                        class="text-white hover:text-blue-200 transition-colors duration-200 {% if request.path == '/' %}font-semibold{% endif %}">
+                        Home
+                    </a>
+                    <a href="{{ url_for('main.pricing') }}"
+                        class="text-white hover:text-blue-200 transition-colors duration-200 {% if request.path == '/pricing' %}font-semibold{% endif %}">
+                        Pricing
+                    </a>
+                    <a href="{{ url_for('main.about') }}"
+                        class="text-white hover:text-blue-200 transition-colors duration-200 {% if request.path == '/about' %}font-semibold{% endif %}">
+                        About
+                    </a>
+                    <a href="{{ url_for('main.contact') }}"
+                        class="text-white hover:text-blue-200 transition-colors duration-200 {% if request.path == '/contact' %}font-semibold{% endif %}">
+                        Contact
+                    </a>
+
+                    {% if session['landlord_id'] %}
+                    <a href="{{ url_for('main.dashboard') }}"
+                        class="bg-white text-blue-600 px-4 py-2 rounded-full font-medium hover:bg-blue-50 transition-colors duration-200">
+                        Dashboard
+                    </a>
+                    <a href="{{ url_for('main.logout') }}"
+                        class="text-red-300 hover:text-red-200 transition-colors duration-200">
+                        Logout
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('main.login') }}"
+                        class="bg-white text-blue-600 px-4 py-2 rounded-full font-medium hover:bg-blue-50 transition-colors duration-200">
+                        Login
+                    </a>
+                    <a href="{{ url_for('main.tenant_login') }}"
+                        class="text-white hover:text-blue-200 transition-colors duration-200">
+                        Tenant Login
+                    </a>
+                    {% endif %}
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button type="button" class="text-white hover:text-blue-200" onclick="toggleMobileMenu()">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Navigation -->
+            <div id="mobile-menu" class="hidden md:hidden pb-4">
+                <div class="flex flex-col space-y-4">
+                    <a href="/"
+                        class="text-white hover:text-blue-200 transition-colors duration-200 {% if request.path == '/' %}font-semibold{% endif %}">
+                        Home
+                    </a>
+                    <a href="{{ url_for('main.pricing') }}"
+                        class="text-white hover:text-blue-200 transition-colors duration-200 {% if request.path == '/pricing' %}font-semibold{% endif %}">
+                        Pricing
+                    </a>
+                    <a href="{{ url_for('main.about') }}"
+                        class="text-white hover:text-blue-200 transition-colors duration-200 {% if request.path == '/about' %}font-semibold{% endif %}">
+                        About
+                    </a>
+                    <a href="{{ url_for('main.contact') }}"
+                        class="text-white hover:text-blue-200 transition-colors duration-200 {% if request.path == '/contact' %}font-semibold{% endif %}">
+                        Contact
+                    </a>
+
+                    {% if session['landlord_id'] %}
+                    <a href="{{ url_for('main.dashboard') }}"
+                        class="bg-white text-blue-600 px-4 py-2 rounded-full font-medium hover:bg-blue-50 transition-colors duration-200 text-center">
+                        Dashboard
+                    </a>
+                    <a href="{{ url_for('main.logout') }}"
+                        class="text-red-300 hover:text-red-200 transition-colors duration-200">
+                        Logout
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('main.login') }}"
+                        class="bg-white text-blue-600 px-4 py-2 rounded-full font-medium hover:bg-blue-50 transition-colors duration-200 text-center">
+                        Login
+                    </a>
+                    <a href="{{ url_for('main.tenant_login') }}"
+                        class="text-white hover:text-blue-200 transition-colors duration-200">
+                        Tenant Login
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="pt-20 px-4 sm:px-6 lg:px-8">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="max-w-4xl mx-auto mb-6">
+            <div class="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg">
+                <i class="fas fa-info-circle mr-2"></i>
+                {{ messages[0] }}
+            </div>
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Footer -->
+    {% if session['landlord_id'] %}
+    <div class="text-center text-gray-600 py-6 mt-8 border-t border-gray-200">
+        <p class="text-sm">
+            &copy; 2025 SmartBiller Built with <span class="text-red-500">💙</span> by
+            <a href="https://techelar.co.ke" class="text-blue-600 hover:text-blue-800">TechElar</a>
+        </p>
+    </div>
+    {% else %}
+    <footer class="bg-gray-900 text-white mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- Brand -->
+                <div class="col-span-1 md:col-span-2">
+                    <h3 class="text-2xl font-bold mb-4">
+                        <i class="fas fa-home mr-2"></i>SmartBiller
+                    </h3>
+                    <p class="text-gray-400 mb-4">
+                        Streamline your rental property management with our comprehensive SaaS solution designed for
+                        Kenyan landlords.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors duration-200">
+                            <i class="fab fa-facebook text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors duration-200">
+                            <i class="fab fa-twitter text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors duration-200">
+                            <i class="fab fa-linkedin text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="/" class="text-gray-400 hover:text-white transition-colors duration-200">Home</a>
+                        </li>
+                        <li><a href="{{ url_for('main.pricing') }}"
+                                class="text-gray-400 hover:text-white transition-colors duration-200">Pricing</a></li>
+                        <li><a href="{{ url_for('main.about') }}"
+                                class="text-gray-400 hover:text-white transition-colors duration-200">About</a></li>
+                        <li><a href="{{ url_for('main.contact') }}"
+                                class="text-gray-400 hover:text-white transition-colors duration-200">Contact</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact Info -->
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Contact</h4>
+                    <div class="space-y-2 text-gray-400">
+                        <p><i class="fas fa-envelope mr-2"></i>info@smartbiller.co.ke</p>
+                        <p><i class="fas fa-phone mr-2"></i>+254 788 963 983</p>
+                        <p><i class="fas fa-map-marker-alt mr-2"></i>Nairobi, Kenya</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2025 SmartBiller. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    {% endif %}
+
+    <!-- Chatbot -->
+    {% if session['landlord_id'] %}
+    <button class="chatbot-btn" onclick="toggleChatbot()">
+        <i class="fas fa-comments"></i>
+    </button>
+
+    <div class="chatbot-window" id="chatbot-window">
+        <div class="chatbot-header">
+            <i class="fas fa-robot mr-2"></i>SmartBiller Assistant
+        </div>
+        <div class="chatbot-messages" id="chatbot-messages">
+            <div class="chatbot-msg-bot">
+                Hello! I'm your SmartBiller assistant. How can I help you today?
+            </div>
+        </div>
+        <div class="chatbot-input">
+            <input type="text" id="chatbot-input" placeholder="Type your message..."
+                onkeypress="handleChatbotKeypress(event)">
+            <button onclick="sendChatbotMessage()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
+    <script>
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        function toggleChatbot() {
+            const chatbot = document.getElementById('chatbot-window');
+            chatbot.style.display = chatbot.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        function handleChatbotKeypress(event) {
+            if (event.key === 'Enter') {
+                sendChatbotMessage();
+            }
+        }
+
+        function sendChatbotMessage() {
+            const input = document.getElementById('chatbot-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            const messagesDiv = document.getElementById('chatbot-messages');
+            messagesDiv.innerHTML += `<div class="chatbot-msg-user">${message}</div>`;
+            input.value = '';
+
+            // Send to API
+            fetch('/api/chatbot', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.reply) {
+                        messagesDiv.innerHTML += `<div class="chatbot-msg-bot">${data.reply}</div>`;
+                    } else {
+                        messagesDiv.innerHTML += `<div class="chatbot-msg-bot">Sorry, I couldn't process your request.</div>`;
+                    }
+                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                })
+                .catch(error => {
+                    messagesDiv.innerHTML += `<div class="chatbot-msg-bot">Sorry, there was an error processing your request.</div>`;
+                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                });
+        }
+    </script>
+</body>
+
+</html>

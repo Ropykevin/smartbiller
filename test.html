@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Job Application Form</title>
+</head>
+<body>
+
+  <h2>Job Application Form</h2>
+
+  <form action="/submit" method="post" enctype="multipart/form-data">
+
+    <fieldset>
+      <legend>Personal Details</legend>
+
+      <label for="fullname">Full Name *</label><br>
+      <input type="text" id="fullname" name="fullname" required><br><br>
+
+      <label for="email">Email *</label><br>
+      <input type="email" id="email" name="email" required><br><br>
+
+      <label for="phone">Phone Number *</label><br>
+      <input type="tel" id="phone" name="phone" pattern="\d{10}" placeholder="10-digit number" required><br><br>
+
+      <label for="dob">Date of Birth *</label><br>
+      <input type="date" id="dob" name="dob" required><br><br>
+
+      <label>Gender *</label><br>
+      <input type="radio" name="gender" value="Male" required> Male
+      <input type="radio" name="gender" value="Female"> Female
+      <input type="radio" name="gender" value="Other"> Other<br><br>
+    </fieldset>
+
+    <fieldset>
+      <legend>Address Details</legend>
+
+      <label for="country">Country *</label><br>
+      <select id="country" name="country" required>
+        <option value="">Select country</option>
+        <option value="Kenya">Kenya</option>
+        <option value="Uganda">Uganda</option>
+        <option value="Tanzania">Tanzania</option>
+        <option value="Rwanda">Rwanda</option>
+      </select><br><br>
+
+      <label for="city">City *</label><br>
+      <input type="text" id="city" name="city" required><br><br>
+
+      <label for="postal">Postal Code *</label><br>
+      <input type="number" id="postal" name="postal" min="10000" required><br><br>
+    </fieldset>
+
+    <fieldset>
+      <legend>Qualifications</legend>
+
+      <label for="qualification">Highest Qualification *</label><br>
+      <select id="qualification" name="qualification" required>
+        <option value="">Select qualification</option>
+        <option value="Certificate">Certificate</option>
+        <option value="Diploma">Diploma</option>
+        <option value="Bachelor">Bachelor’s Degree</option>
+        <option value="Master">Master’s Degree</option>
+      </select><br><br>
+
+      <label for="resume">Upload Resume (PDF only) *</label><br>
+      <input type="file" id="resume" name="resume" accept=".pdf" required><br><br>
+
+      <label for="experience">Years of Experience *</label><br>
+      <input type="number" id="experience" name="experience" min="0" max="40" required><br><br>
+
+      <label>Skills (select at least one)</label><br>
+      <input type="checkbox" name="skills" value="HTML"> HTML
+      <input type="checkbox" name="skills" value="CSS"> CSS
+      <input type="checkbox" name="skills" value="JavaScript"> JavaScript
+      <input type="checkbox" name="skills" value="Python"> Python
+      <input type="checkbox" name="skills" value="SQL"> SQL<br><br>
+    </fieldset>
+
+    <fieldset>
+      <legend>Availability</legend>
+
+      <label for="role">Preferred Job Role *</label><br>
+      <input type="text" id="role" name="role" required><br><br>
+
+      <label>Willing to Relocate? *</label><br>
+      <input type="radio" name="relocate" value="Yes" required> Yes
+      <input type="radio" name="relocate" value="No"> No<br><br>
+
+      <label for="startdate">Available Start Date *</label><br>
+      <input type="date" id="startdate" name="startdate" required><br><br>
+
+      <label for="salary">Expected Salary (KES) *</label><br>
+      <input type="number" id="salary" name="salary" step="5000" min="10000" required><br><br>
+    </fieldset>
+
+    <input type="submit" value="Submit Application">
+    <input type="reset" value="Reset Form">
+
+  </form>
+
+</body>
+</html>

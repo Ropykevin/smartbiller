@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Demo - SmartBiller</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dark-mode.css') }}">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen" data-theme="{{ session.get('theme', 'light') }}">
+    <!-- Header -->
+    <div class="gradient-bg text-white py-6">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <i class="fas fa-palette text-2xl mr-3"></i>
+                    <h1 class="text-2xl font-bold">Theme Demo</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="toggleTheme()"
+                        class="theme-toggle p-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors duration-200"
+                        title="Toggle theme">
+                        <i class="fas fa-moon text-white"></i>
+                    </button>
+                    <a href="{{ url_for('main.dashboard') }}"
+                        class="bg-white bg-opacity-20 text-white px-4 py-2 rounded-lg hover:bg-opacity-30 transition-all">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Theme Info -->
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 mb-8">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Dark & Light Mode Demo</h2>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                    Experience SmartBiller's beautiful dark and light themes. Click the theme toggle button in the
+                    header to switch between modes.
+                </p>
+            </div>
+
+            <!-- Current Theme Status -->
+            <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-8 border border-blue-200">
+                <div class="flex items-center justify-center">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4 mx-auto">
+                            <i class="fas fa-sun text-2xl text-blue-600" id="theme-icon"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Current Theme: <span
+                                id="current-theme">Light</span></h3>
+                        <p class="text-gray-600">Your theme preference is saved automatically</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Component Examples -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Cards Example -->
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+                <h3 class="text-xl font-bold text-gray-900 mb-4">
+                    <i class="fas fa-layer-group text-blue-600 mr-2"></i>
+                    Cards & Containers
+                </h3>
+                <div class="space-y-4">
+                    <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <h4 class="font-semibold text-gray-900 mb-2">Primary Card</h4>
+                        <p class="text-gray-600">This is a primary card with subtle styling.</p>
+                    </div>
+                    <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                        <h4 class="font-semibold text-blue-900 mb-2">Info Card</h4>
+                        <p class="text-blue-700">This is an informational card with blue styling.</p>
+                    </div>
+                    <div class="bg-green-50 rounded-lg p-4 border border-green-200">
+                        <h4 class="font-semibold text-green-900 mb-2">Success Card</h4>
+                        <p class="text-green-700">This is a success card with green styling.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Elements -->
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+                <h3 class="text-xl font-bold text-gray-900 mb-4">
+                    <i class="fas fa-edit text-green-600 mr-2"></i>
+                    Form Elements
+                </h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Text Input</label>
+                        <input type="text" placeholder="Enter your text here"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Select Dropdown</label>
+                        <select
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option>Option 1</option>
+                            <option>Option 2</option>
+                            <option>Option 3</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Textarea</label>
+                        <textarea rows="3" placeholder="Enter your message here"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Buttons Example -->
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
+            <h3 class="text-xl font-bold text-gray-900 mb-4">
+                <i class="fas fa-mouse-pointer text-purple-600 mr-2"></i>
+                Buttons & Interactive Elements
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <button
+                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                    Primary Button
+                </button>
+                <button
+                    class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors duration-200">
+                    Secondary Button
+                </button>
+                <button
+                    class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200">
+                    Success Button
+                </button>
+                <button
+                    class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200">
+                    Danger Button
+                </button>
+            </div>
+        </div>
+
+        <!-- Table Example -->
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
+            <h3 class="text-xl font-bold text-gray-900 mb-4">
+                <i class="fas fa-table text-indigo-600 mr-2"></i>
+                Data Tables
+            </h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Amount</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Date</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Ropy Kevin</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <span
+                                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">KES 15,000</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024-01-15</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Ivy Maundu</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <span
+                                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">KES 12,000</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024-01-14</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Bob Johnson</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <span
+                                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Overdue</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">KES 18,000</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024-01-10</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Alerts Example -->
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+            <h3 class="text-xl font-bold text-gray-900 mb-4">
+                <i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i>
+                Alerts & Notifications
+            </h3>
+            <div class="space-y-4">
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div class="flex">
+                        <i class="fas fa-check-circle text-green-600 mt-1 mr-3"></i>
+                        <div>
+                            <h4 class="text-sm font-medium text-green-800">Success!</h4>
+                            <p class="text-sm text-green-700 mt-1">Your action was completed successfully.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div class="flex">
+                        <i class="fas fa-exclamation-triangle text-yellow-600 mt-1 mr-3"></i>
+                        <div>
+                            <h4 class="text-sm font-medium text-yellow-800">Warning</h4>
+                            <p class="text-sm text-yellow-700 mt-1">Please review your input before proceeding.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div class="flex">
+                        <i class="fas fa-times-circle text-red-600 mt-1 mr-3"></i>
+                        <div>
+                            <h4 class="text-sm font-medium text-red-800">Error</h4>
+                            <p class="text-sm text-red-700 mt-1">Something went wrong. Please try again.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="flex">
+                        <i class="fas fa-info-circle text-blue-600 mt-1 mr-3"></i>
+                        <div>
+                            <h4 class="text-sm font-medium text-blue-800">Information</h4>
+                            <p class="text-sm text-blue-700 mt-1">Here's some helpful information for you.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Theme Management Script -->
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    <script>
+        // Update theme display
+        function updateThemeDisplay() {
+            const theme = window.themeManager?.getCurrentTheme() || 'light';
+            const themeText = document.getElementById('current-theme');
+            const themeIcon = document.getElementById('theme-icon');
+
+            if (themeText) {
+                themeText.textContent = theme.charAt(0).toUpperCase() + theme.slice(1);
+            }
+
+            if (themeIcon) {
+                themeIcon.className = theme === 'dark' ? 'fas fa-moon text-blue-600' : 'fas fa-sun text-blue-600';
+            }
+        }
+
+        // Initialize theme display
+        document.addEventListener('DOMContentLoaded', () => {
+            updateThemeDisplay();
+
+            // Listen for theme changes
+            const observer = new MutationObserver(() => {
+                updateThemeDisplay();
+            });
+
+            observer.observe(document.documentElement, {
+                attributes: true,
+                attributeFilter: ['data-theme']
+            });
+        });
+
+        // Theme toggle function
+        function toggleTheme() {
+            if (window.themeManager) {
+                window.themeManager.toggleTheme();
+                updateThemeDisplay();
+            }
+        }
+    </script>
+</body>
+
+</html>

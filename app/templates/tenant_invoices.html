@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">My Invoices</h1>
+                <p class="text-gray-600">View and download all your invoices</p>
+            </div>
+            <a href="{{ url_for('main.tenant_dashboard') }}"
+                class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors duration-200">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Tenant Info Card -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
+                    <i class="fas fa-user text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Tenant</p>
+                    <p class="text-lg font-semibold text-gray-900">{{ tenant.name }}</p>
+                </div>
+            </div>
+
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100 text-green-600 mr-4">
+                    <i class="fas fa-home text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Unit</p>
+                    <p class="text-lg font-semibold text-gray-900">{{ tenant.unit.unit_number }}</p>
+                </div>
+            </div>
+
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-purple-100 text-purple-600 mr-4">
+                    <i class="fas fa-file-invoice text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Invoices</p>
+                    <p class="text-lg font-semibold text-gray-900">{{ invoices|length }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoices List -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4">
+            <h2 class="text-xl font-bold text-white">
+                <i class="fas fa-file-invoice mr-2"></i>All Invoices
+            </h2>
+        </div>
+
+        <div class="p-6">
+            {% if invoices %}
+            <div class="space-y-4">
+                {% for invoice in invoices %}
+                <div class="border border-gray-200 rounded-lg p-6 hover:bg-gray-50 transition-colors duration-200">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="p-3 bg-purple-100 rounded-lg mr-4">
+                                <i class="fas fa-file-invoice text-purple-600 text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">{{ invoice.invoice_number }}</h3>
+                                <p class="text-sm text-gray-600">{{ invoice.month }} {{ invoice.year }}</p>
+                                <p class="text-xs text-gray-500">
+                                    Generated on {{ invoice.created_at.strftime('%B %d, %Y') }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-2xl font-bold text-gray-900">KES {{ "%.2f"|format(invoice.total_amount) }}
+                            </p>
+                            <div class="mt-2 flex space-x-2">
+                                <a href="{{ url_for('main.tenant_invoice', invoice_id=invoice.id) }}"
+                                    class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200">
+                                    <i class="fas fa-download mr-1"></i>Download
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Invoice Details -->
+                    <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Base Rent</p>
+                                <p class="text-lg font-semibold text-gray-900">KES {{ "%.2f"|format(invoice.base_rent)
+                                    }}</p>
+                            </div>
+
+                            {% if invoice.parsed_charges %}
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Additional Charges</p>
+                                {% if invoice.parsed_charges %}
+                                <div class="space-y-1">
+                                    {% for charge in invoice.parsed_charges %}
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-700">{{ charge.description }}</span>
+                                        <span class="font-medium text-gray-900">KES {{ "%.2f"|format(charge.amount)
+                                            }}</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        {% if invoice.notes %}
+                        <div class="mt-4">
+                            <p class="text-sm font-medium text-gray-600 mb-2">Notes</p>
+                            <p class="text-sm text-gray-700">{{ invoice.notes }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-file-invoice text-2xl text-gray-400"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">No Invoices Yet</h3>
+                <p class="text-gray-600">Your invoices will appear here once generated by your landlord.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

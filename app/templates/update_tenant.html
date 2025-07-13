@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block dashboard_content %}
+<div class="max-w-4xl mx-auto">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Update Tenant</h1>
+        <p class="text-gray-600">Update information for {{ tenant.name }}</p>
+      </div>
+      <a href="{{ url_for('main.dashboard') }}"
+        class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors duration-200">
+        <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Tenant Info Card -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="flex items-center">
+        <div class="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
+          <i class="fas fa-home text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-600">Unit</p>
+          <p class="text-lg font-semibold text-gray-900">{{ tenant.unit.unit_number }}</p>
+        </div>
+      </div>
+
+      <div class="flex items-center">
+        <div class="p-3 rounded-full bg-green-100 text-green-600 mr-4">
+          <i class="fas fa-building text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-600">Property</p>
+          <p class="text-lg font-semibold text-gray-900">{{ tenant.unit.property.name }}</p>
+        </div>
+      </div>
+
+      <div class="flex items-center">
+        <div class="p-3 rounded-full bg-purple-100 text-purple-600 mr-4">
+          <i class="fas fa-money-bill-wave text-xl"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-gray-600">Monthly Rent</p>
+          <p class="text-lg font-semibold text-gray-900">KES {{ "%.2f"|format(tenant.unit.rent_amount) }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Update Form -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
+      <h2 class="text-xl font-bold text-white">
+        <i class="fas fa-edit mr-2"></i>Edit Tenant Information
+      </h2>
+    </div>
+
+    <form method="POST" class="p-6 space-y-6">
+      <!-- Tenant Name -->
+      <div>
+        <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+          <i class="fas fa-user mr-2 text-blue-600"></i>Tenant Name
+        </label>
+        <input type="text" id="name" name="name" value="{{ tenant.name }}" required
+          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Enter tenant's full name">
+      </div>
+
+      <!-- Phone Number -->
+      <div>
+        <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
+          <i class="fas fa-phone mr-2 text-green-600"></i>Phone Number
+        </label>
+        <input type="tel" id="phone" name="phone" value="{{ tenant.phone }}" required pattern="[0-9+\-\s()]+"
+          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="e.g., +254700000000">
+        <p class="mt-2 text-sm text-gray-500">
+          <i class="fas fa-info-circle mr-1"></i>
+          Include country code (e.g., +254 for Kenya)
+        </p>
+      </div>
+
+      <!-- Email Address -->
+      <div>
+        <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+          <i class="fas fa-envelope mr-2 text-blue-600"></i>Email Address <span class="text-red-500">*</span>
+        </label>
+        <input type="email" id="email" name="email" value="{{ tenant.email or '' }}" required
+          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Enter email address">
+        <p class="mt-1 text-sm text-gray-500">
+          <i class="fas fa-info-circle mr-1"></i>
+          Required for tenant login access
+        </p>
+      </div>
+
+      <!-- Current Information Display -->
+      <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+        <h3 class="text-sm font-medium text-gray-700 mb-3">
+          <i class="fas fa-info-circle mr-2 text-blue-600"></i>Current Information
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div>
+            <p class="text-gray-600">Current Name:</p>
+            <p class="font-medium text-gray-900">{{ tenant.name }}</p>
+          </div>
+          <div>
+            <p class="text-gray-600">Current Phone:</p>
+            <p class="font-medium text-gray-900">{{ tenant.phone }}</p>
+          </div>
+          <div>
+            <p class="text-gray-600">Current Email:</p>
+            <p class="font-medium text-gray-900">{{ tenant.email or 'Not set' }}</p>
+          </div>
+          <div>
+            <p class="text-gray-600">Unit Number:</p>
+            <p class="font-medium text-gray-900">{{ tenant.unit.unit_number }}</p>
+          </div>
+          <div>
+            <p class="text-gray-600">Property:</p>
+            <p class="font-medium text-gray-900">{{ tenant.unit.property.name }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+        <a href="{{ url_for('main.dashboard') }}"
+          class="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors duration-200">
+          <i class="fas fa-times mr-2"></i>Cancel
+        </a>
+        <button type="submit"
+          class="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200">
+          <i class="fas fa-save mr-2"></i>Update Tenant
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="mt-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <a href="{{ url_for('main.log_rent', tenant_id=tenant.id) }}"
+        class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+        <div class="p-2 bg-green-100 rounded-lg mr-3">
+          <i class="fas fa-plus text-green-600"></i>
+        </div>
+        <div>
+          <p class="font-medium text-gray-900">Log Payment</p>
+          <p class="text-sm text-gray-600">Record rent payment</p>
+        </div>
+      </a>
+
+      <a href="{{ url_for('main.unit_history', unit_id=tenant.unit.id) }}"
+        class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+        <div class="p-2 bg-blue-100 rounded-lg mr-3">
+          <i class="fas fa-history text-blue-600"></i>
+        </div>
+        <div>
+          <p class="font-medium text-gray-900">View History</p>
+          <p class="text-sm text-gray-600">Payment history</p>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

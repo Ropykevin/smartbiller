@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block dashboard_content %}
+<div class="max-w-4xl mx-auto">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Add Unit</h1>
+        <p class="text-gray-600">Add a new unit to {{ property.name }}</p>
+      </div>
+      <a href="{{ url_for('main.dashboard') }}"
+        class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors duration-200">
+        <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Property Info -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+    <div class="flex items-center">
+      <div
+        class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mr-4">
+        <i class="fas fa-building text-white text-xl"></i>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-gray-900">{{ property.name }}</h2>
+        <p class="text-gray-600">{{ property.location }}</p>
+        <p class="text-sm text-gray-500">Current units: {{ property.units|length }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Unit Form -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
+      <h2 class="text-xl font-bold text-white">
+        <i class="fas fa-plus mr-2"></i>Add New Unit
+      </h2>
+    </div>
+
+    <form method="POST" class="p-6 space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label for="unit_number" class="block text-sm font-medium text-gray-700 mb-2">
+            <i class="fas fa-door-open mr-2 text-blue-600"></i>Unit Number
+          </label>
+          <input type="text" id="unit_number" name="unit_number" required
+            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="e.g., A1, 101, Ground Floor">
+          <p class="mt-1 text-sm text-gray-500">Choose a unique identifier for this unit</p>
+        </div>
+
+        <div>
+          <label for="rent_amount" class="block text-sm font-medium text-gray-700 mb-2">
+            <i class="fas fa-money-bill-wave mr-2 text-green-600"></i>Monthly Rent (KES)
+          </label>
+          <input type="number" id="rent_amount" name="rent_amount" step="0.01" required
+            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="e.g., 25000">
+          <p class="mt-1 text-sm text-gray-500">Monthly rental amount in Kenyan Shillings</p>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+        <a href="{{ url_for('main.dashboard') }}"
+          class="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors duration-200">
+          <i class="fas fa-times mr-2"></i>Cancel
+        </a>
+        <button type="submit"
+          class="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200">
+          <i class="fas fa-plus mr-2"></i>Add Unit
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Bulk Add Units -->
+  <div class="mt-8 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="bg-gradient-to-r from-green-600 to-blue-600 px-6 py-4">
+      <h2 class="text-xl font-bold text-white">
+        <i class="fas fa-layer-group mr-2"></i>Bulk Add Units
+      </h2>
+    </div>
+
+    <div class="p-6">
+      <p class="text-gray-600 mb-4">
+        Need to add multiple units at once? Use this form to create several units with a pattern.
+      </p>
+
+      <form id="bulk-form" class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <label for="start_number" class="block text-sm font-medium text-gray-700 mb-2">
+              <i class="fas fa-sort-numeric-up mr-2 text-purple-600"></i>Start Number
+            </label>
+            <input type="number" id="start_number"
+              class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="1">
+          </div>
+
+          <div>
+            <label for="end_number" class="block text-sm font-medium text-gray-700 mb-2">
+              <i class="fas fa-sort-numeric-down mr-2 text-orange-600"></i>End Number
+            </label>
+            <input type="number" id="end_number"
+              class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="10">
+          </div>
+
+          <div>
+            <label for="prefix" class="block text-sm font-medium text-gray-700 mb-2">
+              <i class="fas fa-tag mr-2 text-blue-600"></i>Prefix (Optional)
+            </label>
+            <input type="text" id="prefix"
+              class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="A">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label for="bulk_rent" class="block text-sm font-medium text-gray-700 mb-2">
+              <i class="fas fa-money-bill-wave mr-2 text-green-600"></i>Rent Amount (KES)
+            </label>
+            <input type="number" id="bulk_rent" step="0.01"
+              class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="25000">
+          </div>
+
+          <div class="flex items-end">
+            <button type="button" onclick="generateBulkUnits()"
+              class="w-full px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-xl font-semibold hover:from-green-700 hover:to-blue-700 transition-all duration-200">
+              <i class="fas fa-magic mr-2"></i>Generate Units
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <!-- Preview -->
+      <div id="bulk-preview" class="hidden mt-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Preview Units to be Created:</h3>
+        <div id="preview-list" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4"></div>
+        <button type="button" onclick="submitBulkUnits()"
+          class="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-purple-800 transition-all duration-200">
+          <i class="fas fa-plus mr-2"></i>Create All Units
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Existing Units -->
+  {% if property.units %}
+  <div class="mt-8 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="bg-gradient-to-r from-gray-600 to-gray-700 px-6 py-4">
+      <h2 class="text-xl font-bold text-white">
+        <i class="fas fa-list mr-2"></i>Existing Units ({{ property.units|length }})
+      </h2>
+    </div>
+
+    <div class="p-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for unit in property.units %}
+        <div
+          class="border border-gray-200 rounded-lg p-4 {% if unit.tenant %}bg-green-50 border-green-200{% else %}bg-gray-50{% endif %}">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-semibold text-gray-900">Unit {{ unit.unit_number }}</h3>
+            {% if unit.tenant %}
+            <span class="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">
+              <i class="fas fa-user mr-1"></i>Occupied
+            </span>
+            {% else %}
+            <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-1 rounded-full">
+              <i class="fas fa-home mr-1"></i>Vacant
+            </span>
+            {% endif %}
+          </div>
+          <p class="text-lg font-bold text-gray-900">KES {{ "%.2f"|format(unit.rent_amount) }}</p>
+          {% if unit.tenant %}
+          <p class="text-sm text-gray-600">{{ unit.tenant.name }}</p>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  function generateBulkUnits() {
+    const startNumber = parseInt(document.getElementById('start_number').value);
+    const endNumber = parseInt(document.getElementById('end_number').value);
+    const prefix = document.getElementById('prefix').value;
+    const rent = parseFloat(document.getElementById('bulk_rent').value);
+
+    if (!startNumber || !endNumber || !rent) {
+      alert('Please fill in all required fields: Start Number, End Number, and Rent Amount');
+      return;
+    }
+
+    if (startNumber > endNumber) {
+      alert('Start number must be less than or equal to end number');
+      return;
+    }
+
+    const previewList = document.getElementById('preview-list');
+    previewList.innerHTML = '';
+
+    for (let i = startNumber; i <= endNumber; i++) {
+      const unitNumber = prefix ? `${prefix}${i}` : i.toString();
+      const unitDiv = document.createElement('div');
+      unitDiv.className = 'border border-gray-200 rounded-lg p-3 bg-blue-50';
+      unitDiv.innerHTML = `
+            <div class="flex items-center justify-between">
+                <span class="font-medium text-gray-900">Unit ${unitNumber}</span>
+                <span class="text-sm text-gray-600">KES ${rent.toLocaleString()}</span>
+            </div>
+        `;
+      previewList.appendChild(unitDiv);
+    }
+
+    document.getElementById('bulk-preview').classList.remove('hidden');
+  }
+
+  function submitBulkUnits() {
+    const startNumber = parseInt(document.getElementById('start_number').value);
+    const endNumber = parseInt(document.getElementById('end_number').value);
+    const prefix = document.getElementById('prefix').value;
+    const rent = parseFloat(document.getElementById('bulk_rent').value);
+
+    if (confirm(`Are you sure you want to create ${endNumber - startNumber + 1} units?`)) {
+      // Create a form to submit all units
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = window.location.href;
+
+      for (let i = startNumber; i <= endNumber; i++) {
+        const unitNumber = prefix ? `${prefix}${i}` : i.toString();
+
+        const unitNumberInput = document.createElement('input');
+        unitNumberInput.type = 'hidden';
+        unitNumberInput.name = 'unit_number';
+        unitNumberInput.value = unitNumber;
+        form.appendChild(unitNumberInput);
+
+        const rentInput = document.createElement('input');
+        rentInput.type = 'hidden';
+        rentInput.name = 'rent_amount';
+        rentInput.value = rent;
+        form.appendChild(rentInput);
+      }
+
+      document.body.appendChild(form);
+      form.submit();
+    }
+  }
+</script>
+{% endblock %}

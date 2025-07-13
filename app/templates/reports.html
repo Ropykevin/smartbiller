@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+
+{% block dashboard_content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">Reports</h1>
+                <p class="text-gray-600">Generate payment reports and analytics</p>
+            </div>
+            <a href="{{ url_for('main.dashboard') }}"
+                class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors duration-200">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Report Generation Form -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
+            <h2 class="text-xl font-bold text-white">
+                <i class="fas fa-chart-bar mr-2"></i>Generate Report
+            </h2>
+        </div>
+
+        <form method="POST" class="p-6 space-y-6">
+            <!-- Property Selection -->
+            <div>
+                <label for="property_id" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-building mr-2 text-blue-600"></i>Select Property
+                </label>
+                <select id="property_id" name="property_id" required
+                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">Choose a property</option>
+                    {% for property in properties %}
+                    <option value="{{ property.id }}">{{ property.name }} - {{ property.location }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Date Range -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="month" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-calendar mr-2 text-green-600"></i>Month
+                    </label>
+                    <select id="month" name="month" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Select month</option>
+                        <option value="01">January</option>
+                        <option value="02">February</option>
+                        <option value="03">March</option>
+                        <option value="04">April</option>
+                        <option value="05">May</option>
+                        <option value="06">June</option>
+                        <option value="07">July</option>
+                        <option value="08">August</option>
+                        <option value="09">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="year" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-calendar-year mr-2 text-purple-600"></i>Year
+                    </label>
+                    <select id="year" name="year" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Select year</option>
+                        {% for year in range(2020, 2030) %}
+                        <option value="{{ year }}" {% if year==2025 %}selected{% endif %}>{{ year }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Report Type -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-3">
+                    <i class="fas fa-file-alt mr-2 text-orange-600"></i>Report Type
+                </label>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div
+                        class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors duration-200">
+                        <input type="radio" id="receipts" name="report_type" value="receipts" class="sr-only" checked>
+                        <label for="receipts" class="cursor-pointer">
+                            <div class="flex items-center">
+                                <div
+                                    class="w-4 h-4 border-2 border-gray-300 rounded-full mr-3 flex items-center justify-center">
+                                    <div class="w-2 h-2 bg-blue-600 rounded-full hidden radio-checked"></div>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-900">Individual Receipts</p>
+                                    <p class="text-sm text-gray-600">Download all receipts as ZIP</p>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div
+                        class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors duration-200">
+                        <input type="radio" id="summary" name="report_type" value="summary" class="sr-only">
+                        <label for="summary" class="cursor-pointer">
+                            <div class="flex items-center">
+                                <div
+                                    class="w-4 h-4 border-2 border-gray-300 rounded-full mr-3 flex items-center justify-center">
+                                    <div class="w-2 h-2 bg-blue-600 rounded-full hidden radio-checked"></div>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-900">Summary Report</p>
+                                    <p class="text-sm text-gray-600">Monthly summary PDF</p>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div
+                        class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors duration-200">
+                        <input type="radio" id="analytics" name="report_type" value="analytics" class="sr-only">
+                        <label for="analytics" class="cursor-pointer">
+                            <div class="flex items-center">
+                                <div
+                                    class="w-4 h-4 border-2 border-gray-300 rounded-full mr-3 flex items-center justify-center">
+                                    <div class="w-2 h-2 bg-blue-600 rounded-full hidden radio-checked"></div>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-900">Analytics</p>
+                                    <p class="text-sm text-gray-600">Payment trends & insights</p>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+                <a href="{{ url_for('main.dashboard') }}"
+                    class="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors duration-200">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                </a>
+                <button type="submit"
+                    class="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200">
+                    <i class="fas fa-download mr-2"></i>Generate Report
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Report Types Info -->
+    <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Individual Receipts -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center mb-4">
+                <div class="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
+                    <i class="fas fa-file-pdf text-xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900">Individual Receipts</h3>
+            </div>
+            <p class="text-gray-600 mb-4">
+                Download all tenant receipts for the selected month as individual PDF files in a ZIP archive.
+            </p>
+            <ul class="text-sm text-gray-600 space-y-1">
+                <li class="flex items-center">
+                    <i class="fas fa-check text-green-500 mr-2"></i>Professional PDF format
+                </li>
+                <li class="flex items-center">
+                    <i class="fas fa-check text-green-500 mr-2"></i>QR code verification
+                </li>
+                <li class="flex items-center">
+                    <i class="fas fa-check text-green-500 mr-2"></i>Ready for printing
+                </li>
+            </ul>
+        </div>
+
+        <!-- Summary Report -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center mb-4">
+                <div class="p-3 rounded-full bg-green-100 text-green-600 mr-4">
+                    <i class="fas fa-chart-pie text-xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900">Summary Report</h3>
+            </div>
+            <p class="text-gray-600 mb-4">
+                Generate a comprehensive monthly summary with totals, statistics, and payment overview.
+            </p>
+            <ul class="text-sm text-gray-600 space-y-1">
+                <li class="flex items-center">
+                    <i class="fas fa-check text-green-500 mr-2"></i>Payment totals
+                </li>
+                <li class="flex items-center">
+                    <i class="fas fa-check text-green-500 mr-2"></i>Occupancy rates
+                </li>
+                <li class="flex items-center">
+                    <i class="fas fa-check text-green-500 mr-2"></i>Outstanding balances
+                </li>
+            </ul>
+        </div>
+
+        <!-- Analytics -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center mb-4">
+                <div class="p-3 rounded-full bg-purple-100 text-purple-600 mr-4">
+                    <i class="fas fa-chart-line text-xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900">Analytics</h3>
+            </div>
+            <p class="text-gray-600 mb-4">
+                View payment trends, tenant performance, and financial insights with interactive charts.
+            </p>
+            <ul class="text-sm text-gray-600 space-y-1">
+                <li class="flex items-center">
+                    <i class="fas fa-check text-green-500 mr-2"></i>Payment trends
+                </li>
+                <li class="flex items-center">
+                    <i class="fas fa-check text-green-500 mr-2"></i>Tenant performance
+                </li>
+                <li class="flex items-center">
+                    <i class="fas fa-check text-green-500 mr-2"></i>Revenue analysis
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="mt-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <a href="{{ url_for('main.send_reminders') }}"
+                class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                <div class="p-2 bg-orange-100 rounded-lg mr-3">
+                    <i class="fas fa-bell text-orange-600"></i>
+                </div>
+                <div>
+                    <p class="font-medium text-gray-900">Send Reminders</p>
+                    <p class="text-sm text-gray-600">Notify unpaid tenants</p>
+                </div>
+            </a>
+
+            <a href="{{ url_for('main.send_notice') }}"
+                class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                <div class="p-2 bg-blue-100 rounded-lg mr-3">
+                    <i class="fas fa-envelope text-blue-600"></i>
+                </div>
+                <div>
+                    <p class="font-medium text-gray-900">Send Notices</p>
+                    <p class="text-sm text-gray-600">Custom SMS notifications</p>
+                </div>
+            </a>
+
+            <a href="{{ url_for('main.dashboard') }}"
+                class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                <div class="p-2 bg-green-100 rounded-lg mr-3">
+                    <i class="fas fa-tachometer-alt text-green-600"></i>
+                </div>
+                <div>
+                    <p class="font-medium text-gray-900">Dashboard</p>
+                    <p class="text-sm text-gray-600">View overview</p>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Radio button functionality
+    document.querySelectorAll('input[type="radio"]').forEach(radio => {
+        radio.addEventListener('change', function () {
+            // Remove checked class from all radio containers
+            document.querySelectorAll('.border-gray-200').forEach(container => {
+                container.classList.remove('border-blue-300', 'bg-blue-50');
+                container.querySelector('.radio-checked').classList.add('hidden');
+            });
+
+            // Add checked class to selected radio container
+            if (this.checked) {
+                const container = this.closest('.border-gray-200');
+                container.classList.add('border-blue-300', 'bg-blue-50');
+                container.querySelector('.radio-checked').classList.remove('hidden');
+            }
+        });
+    });
+
+    // Set default selection
+    document.getElementById('receipts').dispatchEvent(new Event('change'));
+</script>
+{% endblock %}
