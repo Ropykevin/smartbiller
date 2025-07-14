@@ -1,0 +1,300 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Subscription Details - SmartBiller Admin{% endblock %}
+{% block page_title %}Subscription Details{% endblock %}
+
+{% block content %}
+<!-- Back Button -->
+<div class="mb-6">
+    <a href="{{ url_for('main.admin_subscriptions') }}"
+        class="inline-flex items-center text-purple-600 hover:text-purple-700">
+        <i class="fas fa-arrow-left mr-2"></i>
+        Back to Subscriptions
+    </a>
+</div>
+
+<!-- Subscription Overview -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <!-- Subscription Info -->
+    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-semibold text-gray-900">Subscription Information</h3>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                {% if subscription.status == 'active' %}bg-green-100 text-green-800
+                {% elif subscription.status == 'cancelled' %}bg-red-100 text-red-800
+                {% elif subscription.status == 'expired' %}bg-yellow-100 text-yellow-800
+                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                {{ subscription.status|title }}
+            </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h4 class="text-sm font-medium text-gray-500 mb-2">Plan Details</h4>
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600">Plan Type:</span>
+                        <span class="text-sm font-medium text-gray-900">{{ subscription.plan_type|title }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600">Billing Cycle:</span>
+                        <span class="text-sm font-medium text-gray-900">{{ subscription.billing_cycle|title }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600">Amount:</span>
+                        <span class="text-sm font-medium text-gray-900">KES {{ "{:,.0f}".format(subscription.amount)
+                            }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600">Payment Method:</span>
+                        <span class="text-sm font-medium text-gray-900">{{ subscription.payment_method|title if
+                            subscription.payment_method else 'N/A' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="text-sm font-medium text-gray-500 mb-2">Timeline</h4>
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600">Start Date:</span>
+                        <span class="text-sm font-medium text-gray-900">{{ subscription.start_date.strftime('%Y-%m-%d')
+                            if subscription.start_date else 'N/A' }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600">End Date:</span>
+                        <span class="text-sm font-medium text-gray-900">{{ subscription.end_date.strftime('%Y-%m-%d') if
+                            subscription.end_date else 'N/A' }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600">Created:</span>
+                        <span class="text-sm font-medium text-gray-900">{{ subscription.created_at.strftime('%Y-%m-%d
+                            %H:%M') if subscription.created_at else 'N/A' }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600">Last Updated:</span>
+                        <span class="text-sm font-medium text-gray-900">{{ subscription.updated_at.strftime('%Y-%m-%d
+                            %H:%M') if subscription.updated_at else 'N/A' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="mt-6 pt-6 border-t border-gray-200">
+            <div class="flex space-x-3">
+                {% if subscription.status == 'active' %}
+                <form method="POST"
+                    action="{{ url_for('main.admin_cancel_subscription', subscription_id=subscription.id) }}"
+                    class="inline" onsubmit="return confirm('Are you sure you want to cancel this subscription?')">
+                    <button type="submit"
+                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                        <i class="fas fa-times mr-2"></i>Cancel Subscription
+                    </button>
+                </form>
+                {% elif subscription.status == 'cancelled' %}
+                <form method="POST"
+                    action="{{ url_for('main.admin_reactivate_subscription', subscription_id=subscription.id) }}"
+                    class="inline">
+                    <button type="submit"
+                        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                        <i class="fas fa-check mr-2"></i>Reactivate Subscription
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Landlord Info -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Landlord Information</h3>
+        <div class="space-y-4">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mr-4">
+                    <i class="fas fa-user text-purple-600"></i>
+                </div>
+                <div>
+                    <p class="font-medium text-gray-900">{{ landlord.name }}</p>
+                    <p class="text-sm text-gray-500">{{ landlord.email }}</p>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <div class="flex justify-between">
+                    <span class="text-sm text-gray-600">Phone:</span>
+                    <span class="text-sm font-medium text-gray-900">{{ landlord.phone or 'N/A' }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-sm text-gray-600">Member Since:</span>
+                    <span class="text-sm font-medium text-gray-900">{{ landlord.created_at.strftime('%Y-%m-%d') if
+                        landlord.created_at else 'N/A' }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-sm text-gray-600">Trial Status:</span>
+                    <span
+                        class="text-sm font-medium {% if landlord.is_trial_active %}text-green-600{% else %}text-gray-600{% endif %}">
+                        {{ 'Active' if landlord.is_trial_active else 'Inactive' }}
+                    </span>
+                </div>
+                {% if landlord.trial_ends_at %}
+                <div class="flex justify-between">
+                    <span class="text-sm text-gray-600">Trial Ends:</span>
+                    <span class="text-sm font-medium text-gray-900">{{ landlord.trial_ends_at.strftime('%Y-%m-%d')
+                        }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Plan Details -->
+{% if plan %}
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">Plan Features</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+            <h4 class="text-sm font-medium text-gray-500 mb-2">Limits</h4>
+            <div class="space-y-2">
+                <div class="flex justify-between">
+                    <span class="text-sm text-gray-600">Max Properties:</span>
+                    <span class="text-sm font-medium text-gray-900">{{ plan.max_properties }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-sm text-gray-600">Max Units per Property:</span>
+                    <span class="text-sm font-medium text-gray-900">{{ plan.max_units_per_property }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-sm text-gray-600">Max SMS per Month:</span>
+                    <span class="text-sm font-medium text-gray-900">{{ plan.max_sms_per_month }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h4 class="text-sm font-medium text-gray-500 mb-2">Pricing</h4>
+            <div class="space-y-2">
+                <div class="flex justify-between">
+                    <span class="text-sm text-gray-600">Monthly Price:</span>
+                    <span class="text-sm font-medium text-gray-900">KES {{ "{:,.0f}".format(plan.monthly_price)
+                        }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-sm text-gray-600">Yearly Price:</span>
+                    <span class="text-sm font-medium text-gray-900">KES {{ "{:,.0f}".format(plan.yearly_price) }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h4 class="text-sm font-medium text-gray-500 mb-2">Features</h4>
+            {% if features %}
+            <div class="space-y-1">
+                {% for feature in features %}
+                <div class="flex items-center">
+                    <i class="fas fa-check text-green-500 mr-2 text-sm"></i>
+                    <span class="text-sm text-gray-700">{{ feature }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500">No features listed</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Usage History -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">Usage History</h3>
+    {% if usage_logs %}
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Month
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Properties</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Units
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SMS Sent
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PDF
+                        Generated</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">API Calls
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for usage in usage_logs %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ usage.month }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ usage.properties_count or 0 }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ usage.units_count or 0 }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ usage.sms_sent or 0 }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ usage.pdf_generated or 0 }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ usage.api_calls or 0 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-8">
+        <i class="fas fa-chart-bar text-4xl text-gray-300 mb-4"></i>
+        <p class="text-lg font-medium text-gray-500">No usage data available</p>
+        <p class="text-sm text-gray-400">Usage data will appear here once the landlord starts using the platform</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Payment History -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">Payment History</h3>
+    {% if payment_history %}
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reference
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for payment in payment_history %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ payment.date }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">KES {{
+                        "{:,.0f}".format(payment.amount) }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ payment.method }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ payment.reference }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span
+                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            {{ payment.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-8">
+        <i class="fas fa-credit-card text-4xl text-gray-300 mb-4"></i>
+        <p class="text-lg font-medium text-gray-500">No payment history available</p>
+        <p class="text-sm text-gray-400">Payment records will appear here once payments are processed</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

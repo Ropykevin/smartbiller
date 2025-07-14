@@ -30,6 +30,12 @@
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/dark-mode.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/datatables-custom.css') }}">
+  <!-- DataTables CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
   <!-- Theme Management Script - Load early to ensure theme is applied immediately -->
   <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
   <script>
@@ -821,6 +827,112 @@
       if (window.themeManager) {
         window.themeManager.toggleTheme();
       }
+    }
+
+    // DataTables Initialization
+    function initializeDataTables() {
+      if (typeof $.fn.DataTable !== 'undefined') {
+        // Initialize all tables with class 'datatable'
+        $('.datatable').each(function () {
+          const table = $(this);
+          const options = table.data('datatable-options') || {};
+
+          // Default options
+          const defaultOptions = {
+            responsive: true,
+            pageLength: 10,
+            lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]],
+            language: {
+              search: "Search:",
+              lengthMenu: "Show _MENU_ entries",
+              info: "Showing _START_ to _END_ of _TOTAL_ entries",
+              infoEmpty: "Showing 0 to 0 of 0 entries",
+              infoFiltered: "(filtered from _MAX_ total entries)",
+              paginate: {
+                first: "First",
+                last: "Last",
+                next: "Next",
+                previous: "Previous"
+              },
+              processing: "Processing...",
+              emptyTable: "No data available in table"
+            },
+            dom: '<"top"lf>rt<"bottom"ip><"clear">',
+            order: [[0, 'asc']],
+            columnDefs: [
+              {
+                targets: -1, // Last column (actions)
+                orderable: false,
+                searchable: false
+              }
+            ]
+          };
+
+          // Merge options
+          const finalOptions = $.extend(true, defaultOptions, options);
+
+          // Initialize DataTable
+          const dataTable = table.DataTable(finalOptions);
+
+          // Store reference for later use
+          table.data('datatable', dataTable);
+        });
+      }
+    }
+
+    // Initialize DataTables when document is ready
+    $(document).ready(function () {
+      // Load DataTables libraries if not already loaded
+      if (typeof $.fn.DataTable === 'undefined') {
+        // Load jQuery if not already loaded
+        if (typeof $ === 'undefined') {
+          const jqueryScript = document.createElement('script');
+          jqueryScript.src = 'https://code.jquery.com/jquery-3.7.1.min.js';
+          jqueryScript.onload = function () {
+            loadDataTablesLibraries();
+          };
+          document.head.appendChild(jqueryScript);
+        } else {
+          loadDataTablesLibraries();
+        }
+      } else {
+        initializeDataTables();
+      }
+    });
+
+    function loadDataTablesLibraries() {
+      const libraries = [
+        'https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js',
+        'https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js',
+        'https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js',
+        'https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js',
+        'https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js'
+      ];
+
+      let loadedCount = 0;
+      const totalLibraries = libraries.length;
+
+      libraries.forEach(function (library) {
+        const script = document.createElement('script');
+        script.src = library;
+        script.onload = function () {
+          loadedCount++;
+          if (loadedCount === totalLibraries) {
+            initializeDataTables();
+          }
+        };
+        script.onerror = function () {
+          console.warn('Failed to load DataTables library:', library);
+          loadedCount++;
+          if (loadedCount === totalLibraries) {
+            initializeDataTables();
+          }
+        };
+        document.head.appendChild(script);
+      });
     }
   </script>
 </body>

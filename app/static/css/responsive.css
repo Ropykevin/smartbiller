@@ -1,0 +1,683 @@
+/* Enhanced Responsive Design for SmartBiller */
+
+/* Mobile-First Responsive Breakpoints */
+:root {
+    --mobile: 480px;
+    --tablet: 768px;
+    --desktop: 1024px;
+    --large-desktop: 1280px;
+}
+
+/* Base Mobile Styles */
+@media (max-width: 767px) {
+
+    /* Typography adjustments for mobile */
+    h1 {
+        font-size: 1.75rem !important;
+        line-height: 2rem !important;
+    }
+
+    h2 {
+        font-size: 1.5rem !important;
+        line-height: 1.75rem !important;
+    }
+
+    h3 {
+        font-size: 1.25rem !important;
+        line-height: 1.5rem !important;
+    }
+
+    /* Container padding for mobile */
+    .container,
+    .max-w-7xl {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+
+    /* Card adjustments for mobile */
+    .card {
+        margin-bottom: 1rem !important;
+    }
+
+    .card-body {
+        padding: 1rem !important;
+    }
+
+    .card-header {
+        padding: 1rem !important;
+    }
+
+    /* Button sizing for mobile */
+    .btn {
+        padding: 0.75rem 1rem !important;
+        font-size: 0.875rem !important;
+        width: 100% !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    /* Form improvements for mobile */
+    .form-control {
+        font-size: 16px !important;
+        /* Prevents zoom on iOS */
+        padding: 0.875rem 1rem !important;
+    }
+
+    /* Table responsiveness */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table-responsive table {
+        min-width: 600px;
+    }
+
+    /* Grid adjustments */
+    .grid {
+        gap: 1rem !important;
+    }
+
+    .grid-cols-1 {
+        grid-template-columns: 1fr !important;
+    }
+
+    .grid-cols-2 {
+        grid-template-columns: 1fr !important;
+    }
+
+    .grid-cols-3 {
+        grid-template-columns: 1fr !important;
+    }
+
+    .grid-cols-4 {
+        grid-template-columns: 1fr !important;
+    }
+
+    .grid-cols-5 {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Sidebar mobile improvements */
+    .sidebar-link {
+        padding: 1rem !important;
+        font-size: 1rem !important;
+    }
+
+    /* Stats cards mobile layout */
+    .stats-card {
+        padding: 1rem !important;
+        margin-bottom: 1rem !important;
+    }
+
+    .stats-number {
+        font-size: 1.75rem !important;
+    }
+
+    /* Chatbot mobile positioning */
+    .chatbot-btn {
+        bottom: 1rem !important;
+        right: 1rem !important;
+        width: 3.5rem !important;
+        height: 3.5rem !important;
+        font-size: 1.25rem !important;
+    }
+
+    .chatbot-window {
+        bottom: 5rem !important;
+        right: 1rem !important;
+        left: 1rem !important;
+        width: auto !important;
+        max-width: none !important;
+    }
+
+    /* Navigation mobile improvements */
+    .navbar-nav {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+
+    /* Footer mobile layout */
+    .footer-grid {
+        grid-template-columns: 1fr !important;
+        gap: 2rem !important;
+    }
+
+    /* Modal improvements for mobile */
+    .modal-content {
+        margin: 1rem !important;
+        max-height: calc(100vh - 2rem) !important;
+        overflow-y: auto !important;
+    }
+
+    /* Spacing utilities for mobile */
+    .mobile-p-4 {
+        padding: 1rem !important;
+    }
+
+    .mobile-m-4 {
+        margin: 1rem !important;
+    }
+
+    .mobile-gap-4 {
+        gap: 1rem !important;
+    }
+}
+
+/* Tablet Styles */
+@media (min-width: 768px) and (max-width: 1023px) {
+
+    /* Grid adjustments for tablet */
+    .grid-cols-2 {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    .grid-cols-3 {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    .grid-cols-4 {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    .grid-cols-5 {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+
+    /* Container adjustments */
+    .container,
+    .max-w-7xl {
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
+    }
+
+    /* Button sizing for tablet */
+    .btn {
+        padding: 0.875rem 1.5rem !important;
+        font-size: 0.875rem !important;
+    }
+
+    /* Sidebar tablet adjustments */
+    .sidebar-link {
+        padding: 0.875rem 1rem !important;
+    }
+
+    /* Stats cards tablet layout */
+    .stats-card {
+        padding: 1.25rem !important;
+    }
+
+    .stats-number {
+        font-size: 2rem !important;
+    }
+}
+
+/* Desktop Styles */
+@media (min-width: 1024px) {
+
+    /* Grid adjustments for desktop */
+    .grid-cols-2 {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    .grid-cols-3 {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+
+    .grid-cols-4 {
+        grid-template-columns: repeat(4, 1fr) !important;
+    }
+
+    .grid-cols-5 {
+        grid-template-columns: repeat(5, 1fr) !important;
+    }
+
+    /* Container adjustments */
+    .container,
+    .max-w-7xl {
+        padding-left: 3rem !important;
+        padding-right: 3rem !important;
+    }
+
+    /* Button sizing for desktop */
+    .btn {
+        padding: 1rem 2rem !important;
+        font-size: 0.875rem !important;
+    }
+
+    /* Sidebar desktop adjustments */
+    .sidebar-link {
+        padding: 1rem 1.25rem !important;
+    }
+
+    /* Stats cards desktop layout */
+    .stats-card {
+        padding: 1.5rem !important;
+    }
+
+    .stats-number {
+        font-size: 2.25rem !important;
+    }
+}
+
+/* Large Desktop Styles */
+@media (min-width: 1280px) {
+
+    /* Container adjustments */
+    .container,
+    .max-w-7xl {
+        padding-left: 4rem !important;
+        padding-right: 4rem !important;
+    }
+
+    /* Stats cards large desktop layout */
+    .stats-card {
+        padding: 2rem !important;
+    }
+
+    .stats-number {
+        font-size: 2.5rem !important;
+    }
+}
+
+/* Enhanced Touch Interactions */
+@media (hover: none) and (pointer: coarse) {
+
+    /* Touch-friendly button sizes */
+    .btn {
+        min-height: 44px !important;
+        min-width: 44px !important;
+    }
+
+    /* Touch-friendly form controls */
+    .form-control {
+        min-height: 44px !important;
+    }
+
+    /* Touch-friendly links */
+    a,
+    button {
+        min-height: 44px !important;
+        min-width: 44px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* Touch-friendly table cells */
+    .table td,
+    .table th {
+        padding: 1rem 0.75rem !important;
+        min-height: 44px !important;
+    }
+}
+
+/* Landscape Mobile Optimizations */
+@media (max-width: 767px) and (orientation: landscape) {
+
+    /* Reduce vertical spacing in landscape */
+    .container,
+    .max-w-7xl {
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+    }
+
+    /* Adjust card spacing */
+    .card {
+        margin-bottom: 0.5rem !important;
+    }
+
+    /* Reduce button padding */
+    .btn {
+        padding: 0.5rem 1rem !important;
+        margin-bottom: 0.25rem !important;
+    }
+
+    /* Adjust stats cards */
+    .stats-card {
+        padding: 0.75rem !important;
+    }
+
+    .stats-number {
+        font-size: 1.5rem !important;
+    }
+}
+
+/* Print Styles */
+@media print {
+
+    /* Hide non-essential elements */
+    .chatbot-btn,
+    .sidebar,
+    .navbar,
+    .footer,
+    .btn {
+        display: none !important;
+    }
+
+    /* Optimize for printing */
+    body {
+        background: white !important;
+        color: black !important;
+    }
+
+    .card {
+        border: 1px solid #ccc !important;
+        box-shadow: none !important;
+    }
+
+    /* Ensure proper page breaks */
+    .page-break-before {
+        page-break-before: always !important;
+    }
+
+    .page-break-after {
+        page-break-after: always !important;
+    }
+
+    .page-break-inside {
+        page-break-inside: avoid !important;
+    }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    .card {
+        border: 2px solid #000 !important;
+    }
+
+    .btn {
+        border: 2px solid currentColor !important;
+    }
+
+    .form-control {
+        border: 2px solid #000 !important;
+    }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .card-hover:hover {
+        transform: none !important;
+    }
+
+    .btn:hover {
+        transform: none !important;
+    }
+
+    .sidebar-link:hover {
+        transform: none !important;
+    }
+}
+
+/* Dark Mode Responsive Adjustments */
+@media (prefers-color-scheme: dark) {
+    .card {
+        background: #1f2937 !important;
+        border-color: #374151 !important;
+        color: #f9fafb !important;
+    }
+
+    .form-control {
+        background: #374151 !important;
+        border-color: #4b5563 !important;
+        color: #f9fafb !important;
+    }
+
+    .table {
+        background: #1f2937 !important;
+        color: #f9fafb !important;
+    }
+
+    .table th,
+    .table td {
+        border-color: #374151 !important;
+    }
+}
+
+/* Accessibility Improvements */
+@media (prefers-reduced-motion: no-preference) {
+
+    /* Focus indicators for keyboard navigation */
+    .btn:focus,
+    .form-control:focus,
+    a:focus {
+        outline: 2px solid #3b82f6 !important;
+        outline-offset: 2px !important;
+    }
+
+    /* Skip to main content link */
+    .skip-link {
+        position: absolute !important;
+        top: -40px !important;
+        left: 6px !important;
+        background: #3b82f6 !important;
+        color: white !important;
+        padding: 8px !important;
+        text-decoration: none !important;
+        border-radius: 4px !important;
+        z-index: 10000 !important;
+    }
+
+    .skip-link:focus {
+        top: 6px !important;
+    }
+}
+
+/* Custom Utility Classes for Responsive Design */
+.responsive-text {
+    font-size: clamp(0.875rem, 2vw, 1rem);
+}
+
+.responsive-heading {
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.responsive-container {
+    width: 100%;
+    max-width: min(90vw, 1200px);
+    margin: 0 auto;
+    padding: 0 clamp(1rem, 4vw, 3rem);
+}
+
+.responsive-grid {
+    display: grid;
+    gap: clamp(1rem, 3vw, 2rem);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+}
+
+.responsive-spacing {
+    padding: clamp(1rem, 4vw, 3rem);
+    margin: clamp(1rem, 4vw, 3rem) 0;
+}
+
+/* Responsive Images */
+.responsive-image {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    object-fit: cover;
+}
+
+/* Responsive Tables */
+.responsive-table {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.responsive-table table {
+    min-width: 600px;
+    width: 100%;
+}
+
+/* Responsive Forms */
+.responsive-form {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.responsive-form .form-group {
+    margin-bottom: 0;
+}
+
+/* Responsive Navigation */
+.responsive-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: clamp(0.5rem, 2vw, 1rem);
+    align-items: center;
+}
+
+/* Responsive Cards */
+.responsive-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 200px;
+}
+
+.responsive-card .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.responsive-card .card-footer {
+    margin-top: auto;
+}
+
+/* Responsive Sidebar */
+.responsive-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 100%;
+    max-width: 300px;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    z-index: 1000;
+}
+
+.responsive-sidebar.open {
+    transform: translateX(0);
+}
+
+.responsive-sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease-in-out;
+}
+
+.responsive-sidebar-overlay.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Responsive Modal */
+.responsive-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    z-index: 1001;
+}
+
+/* Responsive Loading States */
+.responsive-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+}
+
+.responsive-loading .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f4f6;
+    border-top: 4px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive Error States */
+.responsive-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    text-align: center;
+    padding: 2rem;
+}
+
+.responsive-error .error-icon {
+    font-size: 3rem;
+    color: #ef4444;
+    margin-bottom: 1rem;
+}
+
+/* Responsive Success States */
+.responsive-success {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    text-align: center;
+    padding: 2rem;
+}
+
+.responsive-success .success-icon {
+    font-size: 3rem;
+    color: #10b981;
+    margin-bottom: 1rem;
+}
+
+/* Responsive Empty States */
+.responsive-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    text-align: center;
+    padding: 2rem;
+}
+
+.responsive-empty .empty-icon {
+    font-size: 3rem;
+    color: #6b7280;
+    margin-bottom: 1rem;
+}

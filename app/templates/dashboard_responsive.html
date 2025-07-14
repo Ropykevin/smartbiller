@@ -1,0 +1,462 @@
+{% extends "base.html" %}
+
+{% block dashboard_content %}
+<!-- Enhanced Responsive Dashboard -->
+<div class="responsive-container">
+    <!-- Skip to main content link for accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <!-- Header Section -->
+    <div class="responsive-spacing">
+        <div class="responsive-grid">
+            <div>
+                <h1 class="responsive-heading text-gray-900 mb-2">Dashboard</h1>
+                <p class="responsive-text text-gray-600">Welcome back, {{ landlord.name }}!</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3 justify-end">
+                <a href="{{ url_for('main.add_property') }}" class="btn btn-primary responsive-text">
+                    <i class="fas fa-plus mr-2"></i>Add Property
+                </a>
+                <a href="{{ url_for('main.add_unit_selector') }}" class="btn btn-outline responsive-text">
+                    <i class="fas fa-door-open mr-2"></i>Add Units
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trial Banner -->
+    {% if is_trial_active %}
+    <div class="responsive-spacing">
+        <div class="card responsive-card">
+            <div class="card-header">
+                <div class="responsive-grid">
+                    <div class="flex items-center">
+                        <div
+                            class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-gift text-2xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="responsive-heading mb-1">🎉 Free Trial Active!</h2>
+                            <p class="responsive-text text-green-100">
+                                You have <strong>{{ trial_days_remaining }} days</strong> remaining in your free trial.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-3 justify-end">
+                        <a href="{{ url_for('main.pricing') }}" class="btn btn-outline responsive-text">
+                            <i class="fas fa-eye mr-2"></i>View Plans
+                        </a>
+                        <a href="{{ url_for('main.upgrade') }}" class="btn btn-primary responsive-text">
+                            <i class="fas fa-arrow-up mr-2"></i>Upgrade Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Enhanced Stats Cards -->
+    <div class="responsive-grid mb-8">
+        <div class="responsive-card card-hover">
+            <div class="card-body">
+                <div class="flex items-center">
+                    <div class="p-4 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-600 text-white mr-4">
+                        <i class="fas fa-home text-2xl"></i>
+                    </div>
+                    <div>
+                        <p class="responsive-text font-medium text-gray-600">Properties</p>
+                        <p class="responsive-heading font-bold text-gray-900">{{ total_properties }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="responsive-card card-hover">
+            <div class="card-body">
+                <div class="flex items-center">
+                    <div class="p-4 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white mr-4">
+                        <i class="fas fa-building text-2xl"></i>
+                    </div>
+                    <div>
+                        <p class="responsive-text font-medium text-gray-600">Total Units</p>
+                        <p class="responsive-heading font-bold text-gray-900">{{ total_units }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="responsive-card card-hover">
+            <div class="card-body">
+                <div class="flex items-center">
+                    <div class="p-4 rounded-full bg-gradient-to-r from-green-500 to-green-600 text-white mr-4">
+                        <i class="fas fa-check-circle text-2xl"></i>
+                    </div>
+                    <div>
+                        <p class="responsive-text font-medium text-gray-600">Paid This Month</p>
+                        <p class="responsive-heading font-bold text-gray-900">{{ total_paid }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="responsive-card card-hover">
+            <div class="card-body">
+                <div class="flex items-center">
+                    <div class="p-4 rounded-full bg-gradient-to-r from-red-500 to-red-600 text-white mr-4">
+                        <i class="fas fa-exclamation-triangle text-2xl"></i>
+                    </div>
+                    <div>
+                        <p class="responsive-text font-medium text-gray-600">Unpaid</p>
+                        <p class="responsive-heading font-bold text-gray-900">{{ total_unpaid }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="responsive-card card-hover">
+            <div class="card-body">
+                <div class="flex items-center">
+                    <div class="p-4 rounded-full bg-gradient-to-r from-purple-500 to-purple-600 text-white mr-4">
+                        <i class="fas fa-money-bill-wave text-2xl"></i>
+                    </div>
+                    <div>
+                        <p class="responsive-text font-medium text-gray-600">Total Collected</p>
+                        <p class="responsive-heading font-bold text-gray-900">KES {{ "%.0f"|format(total_collected) }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Plan Usage Stats Widget -->
+    {% if usage and current_plan %}
+    <div class="responsive-spacing">
+        <div class="card responsive-card">
+            <div class="card-header">
+                <div class="responsive-grid">
+                    <div class="flex items-center">
+                        <i class="fas fa-chart-pie text-purple-600 mr-3 text-xl"></i>
+                        <h2 class="responsive-heading text-gray-900">Plan Usage</h2>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-2 justify-end">
+                        <span class="px-3 py-1 rounded-full responsive-text font-medium 
+              {% if current_plan.code == 'basic' %}bg-blue-100 text-blue-800
+              {% elif current_plan.code == 'professional' %}bg-purple-100 text-purple-800
+              {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ current_plan.code|title }} Plan
+                        </span>
+                        <a href="{{ url_for('main.upgrade') }}" class="btn btn-primary responsive-text">
+                            <i class="fas fa-arrow-up mr-2"></i>Upgrade
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="responsive-grid">
+                    <!-- Properties Usage -->
+                    <div class="responsive-card">
+                        <div class="card-body">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="responsive-text font-semibold text-gray-900">
+                                    <i class="fas fa-building text-blue-600 mr-2"></i>
+                                    Properties
+                                </h3>
+                                <span class="responsive-text font-medium text-blue-700">
+                                    {{ usage.properties_count|default(0) }}/{{ current_plan.max_properties|default(0) }}
+                                </span>
+                            </div>
+                            <div class="w-full bg-blue-200 rounded-full h-2 mb-2">
+                                <div class="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                                    style="width: {{ ((usage.properties_count|default(0)) / (current_plan.max_properties|default(1)) * 100)|round }}%">
+                                </div>
+                            </div>
+                            {% if usage.properties_count|default(0) >= current_plan.max_properties|default(0) %}
+                            <p class="text-red-600 responsive-text font-medium">⚠️ Limit reached</p>
+                            {% else %}
+                            <p class="text-blue-600 responsive-text">
+                                {{ (current_plan.max_properties|default(0)) - (usage.properties_count|default(0)) }}
+                                remaining
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Units Usage -->
+                    <div class="responsive-card">
+                        <div class="card-body">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="responsive-text font-semibold text-gray-900">
+                                    <i class="fas fa-home text-green-600 mr-2"></i>
+                                    Total Units
+                                </h3>
+                                <span class="responsive-text font-medium text-green-700">
+                                    {{ usage.units_count|default(0) }}
+                                </span>
+                            </div>
+                            <p class="text-green-600 responsive-text">Across all properties</p>
+                        </div>
+                    </div>
+
+                    <!-- SMS Usage -->
+                    <div class="responsive-card">
+                        <div class="card-body">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="responsive-text font-semibold text-gray-900">
+                                    <i class="fas fa-sms text-purple-600 mr-2"></i>
+                                    SMS This Month
+                                </h3>
+                                <span class="responsive-text font-medium text-purple-700">
+                                    {{ usage.sms_sent|default(0) }}/{{ current_plan.max_sms_per_month|default(0) }}
+                                </span>
+                            </div>
+                            <div class="w-full bg-purple-200 rounded-full h-2 mb-2">
+                                <div class="bg-purple-600 h-2 rounded-full transition-all duration-500"
+                                    style="width: {{ ((usage.sms_sent|default(0)) / (current_plan.max_sms_per_month|default(1)) * 100)|round }}%">
+                                </div>
+                            </div>
+                            {% if usage.sms_sent|default(0) >= current_plan.max_sms_per_month|default(0) %}
+                            <p class="text-red-600 responsive-text font-medium">⚠️ Limit reached</p>
+                            {% else %}
+                            <p class="text-purple-600 responsive-text">
+                                {{ (current_plan.max_sms_per_month|default(0)) - (usage.sms_sent|default(0)) }}
+                                remaining
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Activity Section -->
+    <div class="responsive-spacing">
+        <div class="card responsive-card">
+            <div class="card-header">
+                <h2 class="responsive-heading text-gray-900">
+                    <i class="fas fa-clock mr-3"></i>Recent Activity
+                </h2>
+            </div>
+            <div class="card-body">
+                <div class="responsive-table">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th class="responsive-text">Property</th>
+                                <th class="responsive-text">Unit</th>
+                                <th class="responsive-text">Tenant</th>
+                                <th class="responsive-text">Amount</th>
+                                <th class="responsive-text">Status</th>
+                                <th class="responsive-text">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for activity in recent_activities %}
+                            <tr>
+                                <td class="responsive-text">{{ activity.property_name }}</td>
+                                <td class="responsive-text">{{ activity.unit_number }}</td>
+                                <td class="responsive-text">{{ activity.tenant_name }}</td>
+                                <td class="responsive-text">KES {{ "%.0f"|format(activity.amount) }}</td>
+                                <td>
+                                    <span
+                                        class="badge {% if activity.status == 'paid' %}badge-success{% elif activity.status == 'pending' %}badge-warning{% else %}badge-danger{% endif %} responsive-text">
+                                        {{ activity.status|title }}
+                                    </span>
+                                </td>
+                                <td class="responsive-text">{{ activity.date.strftime('%Y-%m-%d') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Section -->
+    <div class="responsive-spacing">
+        <div class="card responsive-card">
+            <div class="card-header">
+                <h2 class="responsive-heading text-gray-900">
+                    <i class="fas fa-bolt mr-3"></i>Quick Actions
+                </h2>
+            </div>
+            <div class="card-body">
+                <div class="responsive-grid">
+                    <a href="{{ url_for('main.generate_invoice') }}" class="responsive-card card-hover">
+                        <div class="card-body text-center">
+                            <i class="fas fa-file-invoice text-4xl text-blue-600 mb-4"></i>
+                            <h3 class="responsive-text font-semibold text-gray-900 mb-2">Generate Invoice</h3>
+                            <p class="responsive-text text-gray-600">Create and send invoices to tenants</p>
+                        </div>
+                    </a>
+
+                    <a href="{{ url_for('main.send_reminders') }}" class="responsive-card card-hover">
+                        <div class="card-body text-center">
+                            <i class="fas fa-bell text-4xl text-yellow-600 mb-4"></i>
+                            <h3 class="responsive-text font-semibold text-gray-900 mb-2">Send Reminders</h3>
+                            <p class="responsive-text text-gray-600">Send payment reminders to tenants</p>
+                        </div>
+                    </a>
+
+                    <a href="{{ url_for('main.reports') }}" class="responsive-card card-hover">
+                        <div class="card-body text-center">
+                            <i class="fas fa-chart-bar text-4xl text-green-600 mb-4"></i>
+                            <h3 class="responsive-text font-semibold text-gray-900 mb-2">View Reports</h3>
+                            <p class="responsive-text text-gray-600">Generate financial and occupancy reports</p>
+                        </div>
+                    </a>
+
+                    <a href="{{ url_for('main.employees') }}" class="responsive-card card-hover">
+                        <div class="card-body text-center">
+                            <i class="fas fa-users text-4xl text-purple-600 mb-4"></i>
+                            <h3 class="responsive-text font-semibold text-gray-900 mb-2">Manage Employees</h3>
+                            <p class="responsive-text text-gray-600">Add and manage employee accounts</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading State Example -->
+    <div class="responsive-loading" id="loading-state" style="display: none;">
+        <div class="spinner"></div>
+        <p class="responsive-text mt-4">Loading dashboard data...</p>
+    </div>
+
+    <!-- Error State Example -->
+    <div class="responsive-error" id="error-state" style="display: none;">
+        <div class="error-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h3 class="responsive-heading text-gray-900 mb-2">Oops! Something went wrong</h3>
+        <p class="responsive-text text-gray-600 mb-4">We couldn't load your dashboard data. Please try again.</p>
+        <button class="btn btn-primary responsive-text" onclick="retryLoad()">
+            <i class="fas fa-redo mr-2"></i>Try Again
+        </button>
+    </div>
+
+    <!-- Empty State Example -->
+    <div class="responsive-empty" id="empty-state" style="display: none;">
+        <div class="empty-icon">
+            <i class="fas fa-inbox"></i>
+        </div>
+        <h3 class="responsive-heading text-gray-900 mb-2">No data available</h3>
+        <p class="responsive-text text-gray-600 mb-4">Start by adding your first property to see your dashboard data.
+        </p>
+        <a href="{{ url_for('main.add_property') }}" class="btn btn-primary responsive-text">
+            <i class="fas fa-plus mr-2"></i>Add Property
+        </a>
+    </div>
+</div>
+
+<!-- Main content anchor for accessibility -->
+<div id="main-content"></div>
+
+<script>
+    // Enhanced responsive functionality
+    document.addEventListener('DOMContentLoaded', function () {
+        // Initialize responsive behaviors
+        initializeResponsiveBehaviors();
+
+        // Handle loading states
+        handleLoadingStates();
+
+        // Handle responsive table scrolling
+        handleTableResponsiveness();
+    });
+
+    function initializeResponsiveBehaviors() {
+        // Add responsive classes based on screen size
+        const addResponsiveClasses = () => {
+            const width = window.innerWidth;
+            const body = document.body;
+
+            // Remove existing responsive classes
+            body.classList.remove('mobile', 'tablet', 'desktop', 'large-desktop');
+
+            // Add appropriate class
+            if (width < 768) {
+                body.classList.add('mobile');
+            } else if (width < 1024) {
+                body.classList.add('tablet');
+            } else if (width < 1280) {
+                body.classList.add('desktop');
+            } else {
+                body.classList.add('large-desktop');
+            }
+        };
+
+        // Initial call
+        addResponsiveClasses();
+
+        // Listen for resize events
+        window.addEventListener('resize', addResponsiveClasses);
+    }
+
+    function handleLoadingStates() {
+        // Example loading state management
+        const showLoading = () => {
+            document.getElementById('loading-state').style.display = 'flex';
+        };
+
+        const hideLoading = () => {
+            document.getElementById('loading-state').style.display = 'none';
+        };
+
+        const showError = () => {
+            document.getElementById('error-state').style.display = 'flex';
+        };
+
+        const showEmpty = () => {
+            document.getElementById('empty-state').style.display = 'flex';
+        };
+
+        // Make functions globally available
+        window.showLoading = showLoading;
+        window.hideLoading = hideLoading;
+        window.showError = showError;
+        window.showEmpty = showEmpty;
+    }
+
+    function handleTableResponsiveness() {
+        // Add horizontal scroll to tables on mobile
+        const tables = document.querySelectorAll('.responsive-table');
+
+        tables.forEach(table => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'table-wrapper';
+            wrapper.style.overflowX = 'auto';
+            wrapper.style.webkitOverflowScrolling = 'touch';
+
+            // Wrap table in scrollable container
+            table.parentNode.insertBefore(wrapper, table);
+            wrapper.appendChild(table);
+        });
+    }
+
+    function retryLoad() {
+        // Example retry functionality
+        window.showLoading();
+        window.hideLoading();
+        // Add actual retry logic here
+    }
+
+    // Enhanced touch interactions for mobile
+    if ('ontouchstart' in window) {
+        // Add touch-specific behaviors
+        document.addEventListener('touchstart', function () { }, { passive: true });
+
+        // Improve touch targets
+        const touchTargets = document.querySelectorAll('a, button, input, select, textarea');
+        touchTargets.forEach(target => {
+            target.style.minHeight = '44px';
+            target.style.minWidth = '44px';
+        });
+    }
+</script>
+{% endblock %}

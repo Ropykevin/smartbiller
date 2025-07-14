@@ -228,4 +228,97 @@ class Employee(db.Model):
     
     # Relationships
     landlord = db.relationship('Landlord', backref='employees')
-    rent_logs = db.relationship('RentLog', backref='logged_by_employee', lazy=True) 
+    rent_logs = db.relationship('RentLog', backref='logged_by_employee', lazy=True)
+
+# Admin Models for System Monitoring
+class Admin(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(255), nullable=False)
+    role = db.Column(db.String(20), default='admin')  # 'admin', 'super_admin'
+    is_active = db.Column(db.Boolean, default=True)
+    last_login = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class SystemLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    level = db.Column(db.String(20), nullable=False)  # 'info', 'warning', 'error', 'critical'
+    category = db.Column(db.String(50), nullable=False)  # 'auth', 'payment', 'sms', 'email', 'system'
+    message = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.Integer)  # ID of user who triggered the log
+    user_type = db.Column(db.String(20))  # 'landlord', 'tenant', 'employee', 'admin'
+    ip_address = db.Column(db.String(45))  # IPv4 or IPv6
+    user_agent = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class LoginAttempt(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), nullable=False)
+    user_type = db.Column(db.String(20), nullable=False)  # 'landlord', 'tenant', 'employee', 'admin'
+    ip_address = db.Column(db.String(45))
+    user_agent = db.Column(db.Text)
+    success = db.Column(db.Boolean, default=False)
+    failure_reason = db.Column(db.String(100))  # 'invalid_password', 'user_not_found', 'account_locked'
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class SystemMetrics(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    metric_name = db.Column(db.String(100), nullable=False)  # 'active_users', 'total_revenue', 'sms_sent'
+    metric_value = db.Column(db.Float, nullable=False)
+    metric_unit = db.Column(db.String(20))  # 'count', 'currency', 'percentage'
+    category = db.Column(db.String(50))  # 'users', 'revenue', 'usage', 'performance'
+    recorded_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class APIUsage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    endpoint = db.Column(db.String(200), nullable=False)
+    method = db.Column(db.String(10), nullable=False)  # 'GET', 'POST', 'PUT', 'DELETE'
+    user_id = db.Column(db.Integer)
+    user_type = db.Column(db.String(20))
+    response_time = db.Column(db.Float)  # Response time in milliseconds
+    status_code = db.Column(db.Integer)
+    ip_address = db.Column(db.String(45))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class ErrorLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    error_type = db.Column(db.String(100), nullable=False)
+    error_message = db.Column(db.Text, nullable=False)
+    stack_trace = db.Column(db.Text)
+    user_id = db.Column(db.Integer)
+    user_type = db.Column(db.String(20))
+    ip_address = db.Column(db.String(45))
+    user_agent = db.Column(db.Text)
+    url = db.Column(db.String(500))
+    method = db.Column(db.String(10))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    resolved = db.Column(db.Boolean, default=False)
+    resolved_at = db.Column(db.DateTime)
+    resolved_by = db.Column(db.Integer, db.ForeignKey('admin.id'))
+
+class DatabaseHealth(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    connection_count = db.Column(db.Integer)
+    active_connections = db.Column(db.Integer)
+    slow_queries = db.Column(db.Integer)
+    total_queries = db.Column(db.Integer)
+    avg_response_time = db.Column(db.Float)
+    disk_usage = db.Column(db.Float)  # In MB
+    table_sizes = db.Column(db.Text)  # JSON string of table sizes
+    recorded_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class SecurityAlert(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    alert_type = db.Column(db.String(50), nullable=False)  # 'failed_login', 'suspicious_activity', 'data_breach'
+    severity = db.Column(db.String(20), nullable=False)  # 'low', 'medium', 'high', 'critical'
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.Integer)
+    user_type = db.Column(db.String(20))
+    ip_address = db.Column(db.String(45))
+    resolved = db.Column(db.Boolean, default=False)
+    resolved_at = db.Column(db.DateTime)
+    resolved_by = db.Column(db.Integer, db.ForeignKey('admin.id'))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow) 

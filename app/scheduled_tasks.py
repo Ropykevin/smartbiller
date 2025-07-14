@@ -301,6 +301,18 @@ def send_late_payment_reminders():
                         send_sms(tenant.phone, message)
                         update_usage_logs(landlord.id, 'sms_sent')
 
+def send_daily_error_summary():
+    """Send daily error summary to admin"""
+    try:
+        from app.error_notification import ErrorNotificationService
+        success = ErrorNotificationService.send_daily_error_summary()
+        if success:
+            print("✅ Daily error summary sent successfully")
+        else:
+            print("ℹ️ No errors to report in daily summary")
+    except Exception as e:
+        print(f"❌ Failed to send daily error summary: {str(e)}")
+
 
 # CLI commands for manual execution
 def run_late_reminders():

@@ -1,0 +1,728 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="responsive-container">
+    <!-- Demo Header -->
+    <div class="responsive-spacing">
+        <h1 class="responsive-heading text-center text-gray-900 mb-4">
+            <i class="fas fa-table mr-3 text-blue-600"></i>
+            DataTables Demo
+        </h1>
+        <p class="responsive-text text-center text-gray-600 mb-8">
+            Explore the enhanced table features with sorting, searching, pagination, and export capabilities
+        </p>
+    </div>
+
+    <!-- Basic DataTable Demo -->
+    <div class="responsive-spacing">
+        <div class="card responsive-card">
+            <div class="card-header">
+                <h2 class="responsive-heading">
+                    <i class="fas fa-list mr-3"></i>
+                    Basic DataTable
+                </h2>
+                <p class="responsive-text text-gray-600 mt-2">Simple table with sorting and searching</p>
+            </div>
+            <div class="card-body">
+                <div class="responsive-table">
+                    <table class="datatable" id="basic-table"
+                        data-datatable-options='{"pageLength": 5, "order": [[0, "asc"]]}'>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Position</th>
+                                <th>Office</th>
+                                <th>Age</th>
+                                <th>Start Date</th>
+                                <th>Salary</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Tiger Nixon</td>
+                                <td>System Architect</td>
+                                <td>Edinburgh</td>
+                                <td>61</td>
+                                <td>2011/04/25</td>
+                                <td>$320,800</td>
+                                <td><span class="badge badge-success">Active</span></td>
+                            </tr>
+                            <tr>
+                                <td>Garrett Winters</td>
+                                <td>Accountant</td>
+                                <td>Tokyo</td>
+                                <td>63</td>
+                                <td>2011/07/25</td>
+                                <td>$170,750</td>
+                                <td><span class="badge badge-success">Active</span></td>
+                            </tr>
+                            <tr>
+                                <td>Ashton Cox</td>
+                                <td>Junior Technical Author</td>
+                                <td>San Francisco</td>
+                                <td>66</td>
+                                <td>2009/01/12</td>
+                                <td>$86,000</td>
+                                <td><span class="badge badge-warning">Pending</span></td>
+                            </tr>
+                            <tr>
+                                <td>Cedric Kelly</td>
+                                <td>Senior Javascript Developer</td>
+                                <td>Edinburgh</td>
+                                <td>22</td>
+                                <td>2012/03/29</td>
+                                <td>$433,060</td>
+                                <td><span class="badge badge-success">Active</span></td>
+                            </tr>
+                            <tr>
+                                <td>Airi Satou</td>
+                                <td>Accountant</td>
+                                <td>Tokyo</td>
+                                <td>33</td>
+                                <td>2008/11/28</td>
+                                <td>$162,700</td>
+                                <td><span class="badge badge-danger">Inactive</span></td>
+                            </tr>
+                            <tr>
+                                <td>Brielle Williamson</td>
+                                <td>Integration Specialist</td>
+                                <td>New York</td>
+                                <td>61</td>
+                                <td>2012/12/02</td>
+                                <td>$372,000</td>
+                                <td><span class="badge badge-success">Active</span></td>
+                            </tr>
+                            <tr>
+                                <td>Herrod Chandler</td>
+                                <td>Sales Assistant</td>
+                                <td>San Francisco</td>
+                                <td>59</td>
+                                <td>2012/08/06</td>
+                                <td>$137,500</td>
+                                <td><span class="badge badge-warning">Pending</span></td>
+                            </tr>
+                            <tr>
+                                <td>Rhona Davidson</td>
+                                <td>Integration Specialist</td>
+                                <td>Tokyo</td>
+                                <td>55</td>
+                                <td>2010/10/14</td>
+                                <td>$327,900</td>
+                                <td><span class="badge badge-success">Active</span></td>
+                            </tr>
+                            <tr>
+                                <td>Colleen Hurst</td>
+                                <td>Javascript Developer</td>
+                                <td>San Francisco</td>
+                                <td>39</td>
+                                <td>2009/09/15</td>
+                                <td>$205,500</td>
+                                <td><span class="badge badge-danger">Inactive</span></td>
+                            </tr>
+                            <tr>
+                                <td>Sonya Frost</td>
+                                <td>Software Engineer</td>
+                                <td>Edinburgh</td>
+                                <td>23</td>
+                                <td>2008/12/13</td>
+                                <td>$103,600</td>
+                                <td><span class="badge badge-success">Active</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advanced DataTable with Export Buttons -->
+    <div class="responsive-spacing">
+        <div class="card responsive-card">
+            <div class="card-header">
+                <h2 class="responsive-heading">
+                    <i class="fas fa-download mr-3"></i>
+                    Advanced DataTable with Export
+                </h2>
+                <p class="responsive-text text-gray-600 mt-2">Table with copy, Excel, PDF, and print export options</p>
+            </div>
+            <div class="card-body">
+                <div class="responsive-table">
+                    <table class="datatable" id="export-table"
+                        data-datatable-options='{"pageLength": 10, "order": [[0, "asc"], [1, "asc"]], "dom": "<\"top\"lfB>rt<\"bottom\"ip><\"clear\">", "buttons": ["copy", "excel", "pdf", "print"]}'>
+                        <thead>
+                            <tr>
+                                <th>Property</th>
+                                <th>Unit</th>
+                                <th>Tenant</th>
+                                <th>Rent Amount</th>
+                                <th>Payment Status</th>
+                                <th>Due Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Sunset Apartments</td>
+                                <td>A101</td>
+                                <td>John Doe</td>
+                                <td>KES 25,000</td>
+                                <td><span class="badge badge-success">Paid</span></td>
+                                <td>2024-01-01</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm">View</button>
+                                    <button class="btn btn-success btn-sm">Edit</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Green Valley</td>
+                                <td>B205</td>
+                                <td>Jane Smith</td>
+                                <td>KES 30,000</td>
+                                <td><span class="badge badge-warning">Partial</span></td>
+                                <td>2024-01-01</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm">View</button>
+                                    <button class="btn btn-success btn-sm">Edit</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>City Center</td>
+                                <td>C301</td>
+                                <td>Mike Johnson</td>
+                                <td>KES 35,000</td>
+                                <td><span class="badge badge-danger">Unpaid</span></td>
+                                <td>2024-01-01</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm">View</button>
+                                    <button class="btn btn-success btn-sm">Edit</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Riverside Gardens</td>
+                                <td>D401</td>
+                                <td>Sarah Wilson</td>
+                                <td>KES 28,000</td>
+                                <td><span class="badge badge-success">Paid</span></td>
+                                <td>2024-01-01</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm">View</button>
+                                    <button class="btn btn-success btn-sm">Edit</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Mountain View</td>
+                                <td>E501</td>
+                                <td>David Brown</td>
+                                <td>KES 32,000</td>
+                                <td><span class="badge badge-warning">Partial</span></td>
+                                <td>2024-01-01</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm">View</button>
+                                    <button class="btn btn-success btn-sm">Edit</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Ocean Heights</td>
+                                <td>F601</td>
+                                <td>Lisa Davis</td>
+                                <td>KES 40,000</td>
+                                <td><span class="badge badge-success">Paid</span></td>
+                                <td>2024-01-01</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm">View</button>
+                                    <button class="btn btn-success btn-sm">Edit</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Forest Park</td>
+                                <td>G701</td>
+                                <td>Robert Miller</td>
+                                <td>KES 27,000</td>
+                                <td><span class="badge badge-danger">Unpaid</span></td>
+                                <td>2024-01-01</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm">View</button>
+                                    <button class="btn btn-success btn-sm">Edit</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Sky Tower</td>
+                                <td>H801</td>
+                                <td>Emily Garcia</td>
+                                <td>KES 45,000</td>
+                                <td><span class="badge badge-success">Paid</span></td>
+                                <td>2024-01-01</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm">View</button>
+                                    <button class="btn btn-success btn-sm">Edit</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Lakeside Manor</td>
+                                <td>I901</td>
+                                <td>James Rodriguez</td>
+                                <td>KES 38,000</td>
+                                <td><span class="badge badge-warning">Partial</span></td>
+                                <td>2024-01-01</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm">View</button>
+                                    <button class="btn btn-success btn-sm">Edit</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Harbor View</td>
+                                <td>J1001</td>
+                                <td>Maria Martinez</td>
+                                <td>KES 33,000</td>
+                                <td><span class="badge badge-success">Paid</span></td>
+                                <td>2024-01-01</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm">View</button>
+                                    <button class="btn btn-success btn-sm">Edit</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Responsive DataTable Demo -->
+    <div class="responsive-spacing">
+        <div class="card responsive-card">
+            <div class="card-header">
+                <h2 class="responsive-heading">
+                    <i class="fas fa-mobile-alt mr-3"></i>
+                    Responsive DataTable
+                </h2>
+                <p class="responsive-text text-gray-600 mt-2">Table that adapts to mobile screens with collapsible
+                    columns</p>
+            </div>
+            <div class="card-body">
+                <div class="responsive-table">
+                    <table class="datatable" id="responsive-table"
+                        data-datatable-options='{"pageLength": 8, "order": [[0, "asc"]], "responsive": true}'>
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Department</th>
+                                <th>Position</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Hire Date</th>
+                                <th>Salary</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="flex items-center">
+                                        <div
+                                            class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                            <i class="fas fa-user text-blue-600 text-sm"></i>
+                                        </div>
+                                        <span class="font-medium">Alice Johnson</span>
+                                    </div>
+                                </td>
+                                <td>Engineering</td>
+                                <td>Senior Developer</td>
+                                <td>alice@company.com</td>
+                                <td>+254 700 123 456</td>
+                                <td>2020-03-15</td>
+                                <td>KES 150,000</td>
+                                <td><span class="badge badge-success">Active</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="flex items-center">
+                                        <div
+                                            class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                                            <i class="fas fa-user text-green-600 text-sm"></i>
+                                        </div>
+                                        <span class="font-medium">Bob Smith</span>
+                                    </div>
+                                </td>
+                                <td>Marketing</td>
+                                <td>Marketing Manager</td>
+                                <td>bob@company.com</td>
+                                <td>+254 700 234 567</td>
+                                <td>2019-07-22</td>
+                                <td>KES 120,000</td>
+                                <td><span class="badge badge-success">Active</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="flex items-center">
+                                        <div
+                                            class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                                            <i class="fas fa-user text-purple-600 text-sm"></i>
+                                        </div>
+                                        <span class="font-medium">Carol Davis</span>
+                                    </div>
+                                </td>
+                                <td>Sales</td>
+                                <td>Sales Representative</td>
+                                <td>carol@company.com</td>
+                                <td>+254 700 345 678</td>
+                                <td>2021-01-10</td>
+                                <td>KES 80,000</td>
+                                <td><span class="badge badge-warning">On Leave</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="flex items-center">
+                                        <div
+                                            class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mr-3">
+                                            <i class="fas fa-user text-red-600 text-sm"></i>
+                                        </div>
+                                        <span class="font-medium">David Wilson</span>
+                                    </div>
+                                </td>
+                                <td>HR</td>
+                                <td>HR Specialist</td>
+                                <td>david@company.com</td>
+                                <td>+254 700 456 789</td>
+                                <td>2018-11-05</td>
+                                <td>KES 100,000</td>
+                                <td><span class="badge badge-danger">Terminated</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="flex items-center">
+                                        <div
+                                            class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
+                                            <i class="fas fa-user text-yellow-600 text-sm"></i>
+                                        </div>
+                                        <span class="font-medium">Eva Brown</span>
+                                    </div>
+                                </td>
+                                <td>Finance</td>
+                                <td>Accountant</td>
+                                <td>eva@company.com</td>
+                                <td>+254 700 567 890</td>
+                                <td>2020-09-18</td>
+                                <td>KES 90,000</td>
+                                <td><span class="badge badge-success">Active</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="flex items-center">
+                                        <div
+                                            class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-3">
+                                            <i class="fas fa-user text-indigo-600 text-sm"></i>
+                                        </div>
+                                        <span class="font-medium">Frank Miller</span>
+                                    </div>
+                                </td>
+                                <td>IT</td>
+                                <td>System Administrator</td>
+                                <td>frank@company.com</td>
+                                <td>+254 700 678 901</td>
+                                <td>2019-05-12</td>
+                                <td>KES 110,000</td>
+                                <td><span class="badge badge-success">Active</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="flex items-center">
+                                        <div
+                                            class="w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center mr-3">
+                                            <i class="fas fa-user text-pink-600 text-sm"></i>
+                                        </div>
+                                        <span class="font-medium">Grace Lee</span>
+                                    </div>
+                                </td>
+                                <td>Design</td>
+                                <td>UI/UX Designer</td>
+                                <td>grace@company.com</td>
+                                <td>+254 700 789 012</td>
+                                <td>2021-06-30</td>
+                                <td>KES 95,000</td>
+                                <td><span class="badge badge-success">Active</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="flex items-center">
+                                        <div
+                                            class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3">
+                                            <i class="fas fa-user text-gray-600 text-sm"></i>
+                                        </div>
+                                        <span class="font-medium">Henry Taylor</span>
+                                    </div>
+                                </td>
+                                <td>Operations</td>
+                                <td>Operations Manager</td>
+                                <td>henry@company.com</td>
+                                <td>+254 700 890 123</td>
+                                <td>2018-08-14</td>
+                                <td>KES 130,000</td>
+                                <td><span class="badge badge-warning">Part-time</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom DataTable with Advanced Features -->
+    <div class="responsive-spacing">
+        <div class="card responsive-card">
+            <div class="card-header">
+                <h2 class="responsive-heading">
+                    <i class="fas fa-cogs mr-3"></i>
+                    Custom DataTable with Advanced Features
+                </h2>
+                <p class="responsive-text text-gray-600 mt-2">Table with custom styling, column-specific search, and
+                    advanced options</p>
+            </div>
+            <div class="card-body">
+                <div class="responsive-table">
+                    <table class="datatable" id="custom-table"
+                        data-datatable-options='{"pageLength": 6, "order": [[1, "desc"]], "dom": "<\"top\"lfB>rt<\"bottom\"ip><\"clear\">", "buttons": ["copy", "excel", "pdf"], "columnDefs": [{"targets": -1, "orderable": false, "searchable": false}]}'>
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Rating</th>
+                                <th>Last Updated</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>iPhone 15 Pro</td>
+                                <td>Electronics</td>
+                                <td>KES 150,000</td>
+                                <td><span class="badge badge-success">In Stock</span></td>
+                                <td>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-gray-300"></i>
+                                        <span class="ml-2 text-sm">4.2</span>
+                                    </div>
+                                </td>
+                                <td>2024-01-15</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm">View</button>
+                                    <button class="btn btn-success btn-sm">Edit</button>
+                                    <button class="btn btn-danger btn-sm">Delete</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>MacBook Air M2</td>
+                                <td>Computers</td>
+                                <td>KES 180,000</td>
+                                <td><span class="badge badge-warning">Low Stock</span></td>
+                                <td>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <span class="ml-2 text-sm">4.8</span>
+                                    </div>
+                                </td>
+                                <td>2024-01-14</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm">View</button>
+                                    <button class="btn btn-success btn-sm">Edit</button>
+                                    <button class="btn btn-danger btn-sm">Delete</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Samsung Galaxy S24</td>
+                                <td>Electronics</td>
+                                <td>KES 120,000</td>
+                                <td><span class="badge badge-success">In Stock</span></td>
+                                <td>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-gray-300"></i>
+                                        <span class="ml-2 text-sm">4.1</span>
+                                    </div>
+                                </td>
+                                <td>2024-01-13</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm">View</button>
+                                    <button class="btn btn-success btn-sm">Edit</button>
+                                    <button class="btn btn-danger btn-sm">Delete</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>iPad Air</td>
+                                <td>Tablets</td>
+                                <td>KES 90,000</td>
+                                <td><span class="badge badge-danger">Out of Stock</span></td>
+                                <td>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-gray-300"></i>
+                                        <span class="ml-2 text-sm">4.3</span>
+                                    </div>
+                                </td>
+                                <td>2024-01-12</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm">View</button>
+                                    <button class="btn btn-success btn-sm">Edit</button>
+                                    <button class="btn btn-danger btn-sm">Delete</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Dell XPS 13</td>
+                                <td>Computers</td>
+                                <td>KES 160,000</td>
+                                <td><span class="badge badge-success">In Stock</span></td>
+                                <td>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <span class="ml-2 text-sm">4.7</span>
+                                    </div>
+                                </td>
+                                <td>2024-01-11</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm">View</button>
+                                    <button class="btn btn-success btn-sm">Edit</button>
+                                    <button class="btn btn-danger btn-sm">Delete</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>AirPods Pro</td>
+                                <td>Accessories</td>
+                                <td>KES 35,000</td>
+                                <td><span class="badge badge-success">In Stock</span></td>
+                                <td>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                        <span class="ml-2 text-sm">4.9</span>
+                                    </div>
+                                </td>
+                                <td>2024-01-10</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm">View</button>
+                                    <button class="btn btn-success btn-sm">Edit</button>
+                                    <button class="btn btn-danger btn-sm">Delete</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DataTable Features Info -->
+    <div class="responsive-spacing">
+        <div class="card responsive-card">
+            <div class="card-header">
+                <h2 class="responsive-heading">
+                    <i class="fas fa-info-circle mr-3"></i>
+                    DataTable Features
+                </h2>
+            </div>
+            <div class="card-body">
+                <div class="responsive-grid">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-search text-blue-600 text-2xl"></i>
+                        </div>
+                        <h3 class="responsive-text font-semibold mb-2">Search & Filter</h3>
+                        <p class="responsive-text text-gray-600">Global search across all columns with instant filtering
+                        </p>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-sort text-green-600 text-2xl"></i>
+                        </div>
+                        <h3 class="responsive-text font-semibold mb-2">Sorting</h3>
+                        <p class="responsive-text text-gray-600">Click column headers to sort data in ascending or
+                            descending order</p>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-list text-purple-600 text-2xl"></i>
+                        </div>
+                        <h3 class="responsive-text font-semibold mb-2">Pagination</h3>
+                        <p class="responsive-text text-gray-600">Navigate through large datasets with configurable page
+                            sizes</p>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-download text-orange-600 text-2xl"></i>
+                        </div>
+                        <h3 class="responsive-text font-semibold mb-2">Export Options</h3>
+                        <p class="responsive-text text-gray-600">Export data as CSV, Excel, PDF, or print-friendly
+                            format</p>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-mobile-alt text-red-600 text-2xl"></i>
+                        </div>
+                        <h3 class="responsive-text font-semibold mb-2">Responsive</h3>
+                        <p class="responsive-text text-gray-600">Adapts to mobile screens with collapsible columns</p>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-cog text-indigo-600 text-2xl"></i>
+                        </div>
+                        <h3 class="responsive-text font-semibold mb-2">Customizable</h3>
+                        <p class="responsive-text text-gray-600">Highly configurable with custom styling and behavior
+                            options</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Additional DataTables customization
+    $(document).ready(function () {
+        // Custom initialization for specific tables
+        if (typeof $.fn.DataTable !== 'undefined') {
+            // Add custom search functionality
+            $('#custom-table').on('search.dt', function () {
+                console.log('Search performed on custom table');
+            });
+
+            // Add custom sorting functionality
+            $('#custom-table').on('order.dt', function () {
+                console.log('Sorting changed on custom table');
+            });
+
+            // Add custom pagination functionality
+            $('#custom-table').on('page.dt', function () {
+                console.log('Page changed on custom table');
+            });
+        }
+    });
+</script>
+{% endblock %}

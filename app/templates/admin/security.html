@@ -1,0 +1,213 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Security Monitoring - SmartBiller Admin{% endblock %}
+{% block page_title %}Security Monitoring{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="mb-8">
+    <h2 class="text-3xl font-bold text-gray-900">Security Monitoring</h2>
+    <p class="text-gray-600 mt-2">Monitor security events, login attempts, and potential threats</p>
+</div>
+
+<!-- Security Overview Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Failed Login Attempts -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">Failed Logins (24h)</p>
+                <p class="text-3xl font-bold text-red-600">{{ login_attempts|selectattr('success', 'equalto',
+                    False)|list|length }}</p>
+            </div>
+            <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Alerts -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">Active Alerts</p>
+                <p class="text-3xl font-bold text-orange-600">{{ security_alerts|selectattr('resolved', 'equalto',
+                    False)|list|length }}</p>
+            </div>
+            <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-shield-alt text-orange-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Suspicious IPs -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">Suspicious IPs</p>
+                <p class="text-3xl font-bold text-yellow-600">{{ login_attempts|selectattr('success', 'equalto',
+                    False)|map(attribute='ip_address')|unique|list|length }}</p>
+            </div>
+            <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-globe text-yellow-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Successful Logins -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">Successful Logins (24h)</p>
+                <p class="text-3xl font-bold text-green-600">{{ login_attempts|selectattr('success', 'equalto',
+                    True)|list|length }}</p>
+            </div>
+            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-check-circle text-green-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Login Attempts and Security Alerts -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Recent Login Attempts -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">Recent Login Attempts</h3>
+            <div class="flex space-x-2">
+                <button class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">All</button>
+                <button class="px-3 py-1 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200">Failed</button>
+                <button
+                    class="px-3 py-1 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200">Success</button>
+            </div>
+        </div>
+        <div class="space-y-4 max-h-96 overflow-y-auto">
+            {% for attempt in login_attempts[:10] %}
+            <div
+                class="flex items-start space-x-3 p-3 {% if attempt.success %}bg-green-50{% else %}bg-red-50{% endif %} rounded-lg border {% if attempt.success %}border-green-200{% else %}border-red-200{% endif %}">
+                <div
+                    class="w-2 h-2 rounded-full mt-2 {% if attempt.success %}bg-green-500{% else %}bg-red-500{% endif %}">
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm font-medium text-gray-900">{{ attempt.username or 'Unknown' }}</p>
+                        <span
+                            class="text-xs px-2 py-1 rounded-full {% if attempt.success %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                            {{ 'Success' if attempt.success else 'Failed' }}
+                        </span>
+                    </div>
+                    <p class="text-xs text-gray-600">{{ attempt.ip_address }}</p>
+                    <p class="text-xs text-gray-500">{{ attempt.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                </div>
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-sm">No login attempts recorded</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Security Alerts -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">Security Alerts</h3>
+            <div class="flex space-x-2">
+                <button class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">All</button>
+                <button class="px-3 py-1 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200">Critical</button>
+                <button
+                    class="px-3 py-1 text-sm bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200">Warning</button>
+            </div>
+        </div>
+        <div class="space-y-4 max-h-96 overflow-y-auto">
+            {% for alert in security_alerts[:10] %}
+            <div
+                class="flex items-start space-x-3 p-3 {% if alert.severity == 'critical' %}bg-red-50 border border-red-200{% elif alert.severity == 'high' %}bg-orange-50 border border-orange-200{% else %}bg-yellow-50 border border-yellow-200{% endif %} rounded-lg">
+                <i
+                    class="fas fa-exclamation-triangle {% if alert.severity == 'critical' %}text-red-500{% elif alert.severity == 'high' %}text-orange-500{% else %}text-yellow-500{% endif %} mt-1"></i>
+                <div class="flex-1">
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm font-medium text-gray-900">{{ alert.title }}</p>
+                        <span
+                            class="text-xs px-2 py-1 rounded-full {% if alert.severity == 'critical' %}bg-red-100 text-red-800{% elif alert.severity == 'high' %}bg-orange-100 text-orange-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                            {{ alert.severity|title }}
+                        </span>
+                    </div>
+                    <p class="text-xs text-gray-700">{{ alert.description }}</p>
+                    <p class="text-xs text-gray-500">{{ alert.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                </div>
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-sm">No security alerts</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- IP Address Analysis -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-8">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">IP Address Analysis</h3>
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IP
+                        Address</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Attempts
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Success
+                        Rate</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last
+                        Attempt</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% set ip_stats = {} %}
+                {% for attempt in login_attempts %}
+                {% if attempt.ip_address not in ip_stats %}
+                {% set _ = ip_stats.update({attempt.ip_address: {'total': 0, 'success': 0, 'last': attempt.created_at}})
+                %}
+                {% endif %}
+                {% set _ = ip_stats[attempt.ip_address].update({'total': ip_stats[attempt.ip_address]['total'] + 1}) %}
+                {% if attempt.success %}
+                {% set _ = ip_stats[attempt.ip_address].update({'success': ip_stats[attempt.ip_address]['success'] + 1})
+                %}
+                {% endif %}
+                {% endfor %}
+
+                {% for ip, stats in ip_stats.items() %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ ip }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Unknown</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ stats.total }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{ "%.1f"|format((stats.success / stats.total) * 100) }}%
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ stats.last.strftime('%Y-%m-%d %H:%M') }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% set success_rate = (stats.success / stats.total) * 100 %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                            {% if success_rate < 50 %}bg-red-100 text-red-800
+                            {% elif success_rate < 80 %}bg-yellow-100 text-yellow-800
+                            {% else %}bg-green-100 text-green-800{% endif %}">
+                            {% if success_rate < 50 %}Suspicious {% elif success_rate < 80 %}Warning {% else %}Normal{%
+                                endif %} </span>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                        <p class="text-sm">No IP address data available</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

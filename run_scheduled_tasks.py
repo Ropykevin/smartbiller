@@ -15,7 +15,7 @@ from datetime import datetime
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from app import create_app
-from app.scheduled_tasks import run_monthly_invoices, run_late_reminders
+from app.scheduled_tasks import run_monthly_invoices, run_late_reminders, send_daily_error_summary
 
 def main():
     if len(sys.argv) < 2:
@@ -36,14 +36,18 @@ def main():
             run_monthly_invoices()
         elif task == "late_reminders":
             run_late_reminders()
+        elif task == "error_summary":
+            send_daily_error_summary()
         elif task == "all":
             print("Running monthly invoices...")
             run_monthly_invoices()
             print("Running late payment reminders...")
             run_late_reminders()
+            print("Running daily error summary...")
+            send_daily_error_summary()
         else:
             print(f"Unknown task: {task}")
-            print("Available tasks: monthly_invoices, late_reminders, all")
+            print("Available tasks: monthly_invoices, late_reminders, error_summary, all")
             sys.exit(1)
         
         print(f"Completed at: {datetime.now()}")

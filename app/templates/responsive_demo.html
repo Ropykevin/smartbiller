@@ -1,0 +1,430 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="responsive-container">
+    <!-- Demo Header -->
+    <div class="responsive-spacing">
+        <h1 class="responsive-heading text-center text-gray-900 mb-4">
+            <i class="fas fa-mobile-alt mr-3 text-blue-600"></i>
+            Responsive Design Demo
+        </h1>
+        <p class="responsive-text text-center text-gray-600 mb-8">
+            Test the responsive features of SmartBiller across different screen sizes
+        </p>
+    </div>
+
+    <!-- Screen Size Indicator -->
+    <div class="card responsive-card mb-8">
+        <div class="card-header">
+            <h2 class="responsive-heading">
+                <i class="fas fa-desktop mr-3"></i>
+                Current Screen Size
+            </h2>
+        </div>
+        <div class="card-body">
+            <div class="responsive-grid">
+                <div class="text-center">
+                    <div class="text-4xl font-bold text-blue-600 mb-2" id="screen-width">--</div>
+                    <p class="responsive-text text-gray-600">Width (px)</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl font-bold text-green-600 mb-2" id="screen-height">--</div>
+                    <p class="responsive-text text-gray-600">Height (px)</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl font-bold text-purple-600 mb-2" id="device-type">--</div>
+                    <p class="responsive-text text-gray-600">Device Type</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl font-bold text-orange-600 mb-2" id="orientation">--</div>
+                    <p class="responsive-text text-gray-600">Orientation</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Responsive Grid Demo -->
+    <div class="responsive-spacing">
+        <div class="card responsive-card">
+            <div class="card-header">
+                <h2 class="responsive-heading">
+                    <i class="fas fa-th mr-3"></i>
+                    Responsive Grid Demo
+                </h2>
+            </div>
+            <div class="card-body">
+                <div class="responsive-grid">
+                    <div class="responsive-card card-hover">
+                        <div class="card-body text-center">
+                            <i class="fas fa-home text-4xl text-blue-600 mb-4"></i>
+                            <h3 class="responsive-heading mb-2">Properties</h3>
+                            <p class="responsive-text text-gray-600">Manage your rental properties</p>
+                        </div>
+                    </div>
+
+                    <div class="responsive-card card-hover">
+                        <div class="card-body text-center">
+                            <i class="fas fa-users text-4xl text-green-600 mb-4"></i>
+                            <h3 class="responsive-heading mb-2">Tenants</h3>
+                            <p class="responsive-text text-gray-600">Track tenant information</p>
+                        </div>
+                    </div>
+
+                    <div class="responsive-card card-hover">
+                        <div class="card-body text-center">
+                            <i class="fas fa-money-bill-wave text-4xl text-purple-600 mb-4"></i>
+                            <h3 class="responsive-heading mb-2">Payments</h3>
+                            <p class="responsive-text text-gray-600">Process rent payments</p>
+                        </div>
+                    </div>
+
+                    <div class="responsive-card card-hover">
+                        <div class="card-body text-center">
+                            <i class="fas fa-chart-bar text-4xl text-orange-600 mb-4"></i>
+                            <h3 class="responsive-heading mb-2">Reports</h3>
+                            <p class="responsive-text text-gray-600">Generate financial reports</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Responsive Form Demo -->
+    <div class="responsive-spacing">
+        <div class="card responsive-card">
+            <div class="card-header">
+                <h2 class="responsive-heading">
+                    <i class="fas fa-edit mr-3"></i>
+                    Responsive Form Demo
+                </h2>
+            </div>
+            <div class="card-body">
+                <form class="responsive-form">
+                    <div class="form-group">
+                        <label class="form-label responsive-text">First Name</label>
+                        <input type="text" class="form-control responsive-text" placeholder="Enter first name">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label responsive-text">Last Name</label>
+                        <input type="text" class="form-control responsive-text" placeholder="Enter last name">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label responsive-text">Email</label>
+                        <input type="email" class="form-control responsive-text" placeholder="Enter email address">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label responsive-text">Phone</label>
+                        <input type="tel" class="form-control responsive-text" placeholder="Enter phone number">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label responsive-text">Property Type</label>
+                        <select class="form-control responsive-text">
+                            <option>Select property type</option>
+                            <option>Apartment</option>
+                            <option>House</option>
+                            <option>Commercial</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label responsive-text">Message</label>
+                        <textarea class="form-control responsive-text" rows="4"
+                            placeholder="Enter your message"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary responsive-text w-full">
+                            <i class="fas fa-paper-plane mr-2"></i>
+                            Submit Form
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Responsive Table Demo -->
+    <div class="responsive-spacing">
+        <div class="card responsive-card">
+            <div class="card-header">
+                <h2 class="responsive-heading">
+                    <i class="fas fa-table mr-3"></i>
+                    Responsive Table Demo
+                </h2>
+            </div>
+            <div class="card-body">
+                <div class="responsive-table">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th class="responsive-text">Property</th>
+                                <th class="responsive-text">Unit</th>
+                                <th class="responsive-text">Tenant</th>
+                                <th class="responsive-text">Rent Amount</th>
+                                <th class="responsive-text">Status</th>
+                                <th class="responsive-text">Due Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="responsive-text">Sunset Apartments</td>
+                                <td class="responsive-text">A101</td>
+                                <td class="responsive-text">John Doe</td>
+                                <td class="responsive-text">KES 25,000</td>
+                                <td><span class="badge badge-success responsive-text">Paid</span></td>
+                                <td class="responsive-text">2024-01-01</td>
+                            </tr>
+                            <tr>
+                                <td class="responsive-text">Green Valley</td>
+                                <td class="responsive-text">B205</td>
+                                <td class="responsive-text">Jane Smith</td>
+                                <td class="responsive-text">KES 30,000</td>
+                                <td><span class="badge badge-warning responsive-text">Partial</span></td>
+                                <td class="responsive-text">2024-01-01</td>
+                            </tr>
+                            <tr>
+                                <td class="responsive-text">City Center</td>
+                                <td class="responsive-text">C301</td>
+                                <td class="responsive-text">Mike Johnson</td>
+                                <td class="responsive-text">KES 35,000</td>
+                                <td><span class="badge badge-danger responsive-text">Unpaid</span></td>
+                                <td class="responsive-text">2024-01-01</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Touch Interaction Demo -->
+    <div class="responsive-spacing">
+        <div class="card responsive-card">
+            <div class="card-header">
+                <h2 class="responsive-heading">
+                    <i class="fas fa-hand-pointer mr-3"></i>
+                    Touch Interaction Demo
+                </h2>
+            </div>
+            <div class="card-body">
+                <div class="responsive-grid">
+                    <button class="btn btn-primary responsive-text" onclick="showAlert('Primary button tapped!')">
+                        <i class="fas fa-star mr-2"></i>
+                        Primary Action
+                    </button>
+
+                    <button class="btn btn-success responsive-text" onclick="showAlert('Success button tapped!')">
+                        <i class="fas fa-check mr-2"></i>
+                        Success Action
+                    </button>
+
+                    <button class="btn btn-warning responsive-text" onclick="showAlert('Warning button tapped!')">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Warning Action
+                    </button>
+
+                    <button class="btn btn-danger responsive-text" onclick="showAlert('Danger button tapped!')">
+                        <i class="fas fa-trash mr-2"></i>
+                        Danger Action
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading States Demo -->
+    <div class="responsive-spacing">
+        <div class="card responsive-card">
+            <div class="card-header">
+                <h2 class="responsive-heading">
+                    <i class="fas fa-spinner mr-3"></i>
+                    Loading States Demo
+                </h2>
+            </div>
+            <div class="card-body">
+                <div class="responsive-grid">
+                    <button class="btn btn-primary responsive-text" onclick="showLoading()">
+                        <i class="fas fa-spinner mr-2"></i>
+                        Show Loading
+                    </button>
+
+                    <button class="btn btn-success responsive-text" onclick="showError()">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Show Error
+                    </button>
+
+                    <button class="btn btn-warning responsive-text" onclick="showEmpty()">
+                        <i class="fas fa-inbox mr-2"></i>
+                        Show Empty
+                    </button>
+
+                    <button class="btn btn-info responsive-text" onclick="hideAll()">
+                        <i class="fas fa-times mr-2"></i>
+                        Hide All
+                    </button>
+                </div>
+
+                <!-- Demo States -->
+                <div class="responsive-loading mt-8" id="demo-loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <p class="responsive-text mt-4">Loading demo data...</p>
+                </div>
+
+                <div class="responsive-error mt-8" id="demo-error" style="display: none;">
+                    <div class="error-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h3 class="responsive-heading text-gray-900 mb-2">Demo Error</h3>
+                    <p class="responsive-text text-gray-600 mb-4">This is a demo error state</p>
+                    <button class="btn btn-primary responsive-text" onclick="hideAll()">
+                        <i class="fas fa-redo mr-2"></i>Try Again
+                    </button>
+                </div>
+
+                <div class="responsive-empty mt-8" id="demo-empty" style="display: none;">
+                    <div class="empty-icon">
+                        <i class="fas fa-inbox"></i>
+                    </div>
+                    <h3 class="responsive-heading text-gray-900 mb-2">No Demo Data</h3>
+                    <p class="responsive-text text-gray-600 mb-4">This is a demo empty state</p>
+                    <button class="btn btn-primary responsive-text" onclick="hideAll()">
+                        <i class="fas fa-plus mr-2"></i>Add Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accessibility Demo -->
+    <div class="responsive-spacing">
+        <div class="card responsive-card">
+            <div class="card-header">
+                <h2 class="responsive-heading">
+                    <i class="fas fa-universal-access mr-3"></i>
+                    Accessibility Demo
+                </h2>
+            </div>
+            <div class="card-body">
+                <div class="responsive-grid">
+                    <div class="text-center">
+                        <h3 class="responsive-heading mb-2">Keyboard Navigation</h3>
+                        <p class="responsive-text text-gray-600">Use Tab to navigate through elements</p>
+                        <button class="btn btn-outline responsive-text mt-4" tabindex="0">
+                            Focusable Button 1
+                        </button>
+                    </div>
+
+                    <div class="text-center">
+                        <h3 class="responsive-heading mb-2">Screen Reader</h3>
+                        <p class="responsive-text text-gray-600">Proper ARIA labels and descriptions</p>
+                        <button class="btn btn-outline responsive-text mt-4" aria-label="Accessible button">
+                            Accessible Button
+                        </button>
+                    </div>
+
+                    <div class="text-center">
+                        <h3 class="responsive-heading mb-2">High Contrast</h3>
+                        <p class="responsive-text text-gray-600">Enhanced borders and contrast</p>
+                        <div class="border-2 border-gray-800 p-4 mt-4">
+                            High Contrast Demo
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <h3 class="responsive-heading mb-2">Reduced Motion</h3>
+                        <p class="responsive-text text-gray-600">Respects motion preferences</p>
+                        <button class="btn btn-outline responsive-text mt-4" onclick="toggleMotion()">
+                            Toggle Motion
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Screen size detection
+    function updateScreenInfo() {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        const orientation = width > height ? 'Landscape' : 'Portrait';
+
+        let deviceType = 'Desktop';
+        if (width < 768) deviceType = 'Mobile';
+        else if (width < 1024) deviceType = 'Tablet';
+        else if (width < 1280) deviceType = 'Desktop';
+        else deviceType = 'Large Desktop';
+
+        document.getElementById('screen-width').textContent = width;
+        document.getElementById('screen-height').textContent = height;
+        document.getElementById('device-type').textContent = deviceType;
+        document.getElementById('orientation').textContent = orientation;
+    }
+
+    // Update on load and resize
+    updateScreenInfo();
+    window.addEventListener('resize', updateScreenInfo);
+
+    // Demo functions
+    function showAlert(message) {
+        alert(message);
+    }
+
+    function showLoading() {
+        hideAll();
+        document.getElementById('demo-loading').style.display = 'flex';
+    }
+
+    function showError() {
+        hideAll();
+        document.getElementById('demo-error').style.display = 'flex';
+    }
+
+    function showEmpty() {
+        hideAll();
+        document.getElementById('demo-empty').style.display = 'flex';
+    }
+
+    function hideAll() {
+        document.getElementById('demo-loading').style.display = 'none';
+        document.getElementById('demo-error').style.display = 'none';
+        document.getElementById('demo-empty').style.display = 'none';
+    }
+
+    function toggleMotion() {
+        const body = document.body;
+        if (body.style.getPropertyValue('--reduced-motion')) {
+            body.style.removeProperty('--reduced-motion');
+            alert('Motion enabled');
+        } else {
+            body.style.setProperty('--reduced-motion', 'reduce');
+            alert('Motion disabled');
+        }
+    }
+
+    // Initialize responsive behaviors
+    document.addEventListener('DOMContentLoaded', function () {
+        // Add responsive classes
+        const addResponsiveClasses = () => {
+            const width = window.innerWidth;
+            const body = document.body;
+
+            body.classList.remove('mobile', 'tablet', 'desktop', 'large-desktop');
+
+            if (width < 768) body.classList.add('mobile');
+            else if (width < 1024) body.classList.add('tablet');
+            else if (width < 1280) body.classList.add('desktop');
+            else body.classList.add('large-desktop');
+        };
+
+        addResponsiveClasses();
+        window.addEventListener('resize', addResponsiveClasses);
+    });
+</script>
+{% endblock %}

@@ -17,7 +17,9 @@ from reportlab.lib.colors import HexColor
 import uuid
 import string
 import json
+import traceback
 from app.subscription_service import SubscriptionService
+from app.error_notification import ErrorNotificationService
 
 # Create blueprint
 main = Blueprint('main', __name__)
@@ -59,7 +61,7 @@ load_dotenv()
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
 # Import models after db initialization
-from .models import Landlord, Property, Unit, Tenant, RentLog, PropertyImage, UnitImage, RentLogImage, ExitNotice, Invoice, generate_receipt_number, generate_invoice_number, Employee
+from .models import Landlord, Property, Unit, Tenant, RentLog, PropertyImage, UnitImage, RentLogImage, ExitNotice, Invoice, generate_receipt_number, generate_invoice_number, Employee, Admin, SystemLog, LoginAttempt, SystemMetrics, APIUsage, ErrorLog, DatabaseHealth, SecurityAlert, Subscription, PricingPlan, UsageLog
 
 def send_employee_welcome_email(employee, default_password, landlord_name):
     """Send welcome email to new employee with login credentials"""
@@ -281,19 +283,37 @@ def login():
         landlord = Landlord.query.filter_by(email=email).first()
         if landlord and check_password_hash(landlord.password, password):
             session['landlord_id'] = landlord.id
+            
+            # Log successful login
+            log_login_attempt(email, 'landlord', True, request.remote_addr, request.user_agent.string)
+            log_system_event('info', 'auth', f'Landlord login successful: {email}', 
+                           landlord.id, 'landlord', request.remote_addr, request.user_agent.string)
+            
             flash('Welcome back!', 'success')
             return redirect(url_for('main.dashboard'))
-        flash('Invalid credentials.', 'error')
+        else:
+            # Log failed login attempt
+            log_login_attempt(email, 'landlord', False, request.remote_addr, request.user_agent.string, 'invalid_credentials')
+            log_system_event('warning', 'auth', f'Failed landlord login attempt: {email}', 
+                           None, 'landlord', request.remote_addr, request.user_agent.string)
+            
+            flash('Invalid credentials.', 'error')
     return render_template('login.html')
 
 
 @main.route('/logout')
 def logout():
     if 'landlord_id' in session:
+        landlord_id = session['landlord_id']
+        log_system_event('info', 'auth', 'Landlord logout', landlord_id, 'landlord', 
+                        request.remote_addr, request.user_agent.string)
         flash('You have been logged out successfully.', 'success')
         session.pop('landlord_id', None)
         return redirect(url_for('main.login'))
     elif 'tenant_id' in session:
+        tenant_id = session['tenant_id']
+        log_system_event('info', 'auth', 'Tenant logout', tenant_id, 'tenant', 
+                        request.remote_addr, request.user_agent.string)
         flash('You have been logged out successfully.', 'success')
         session.pop('tenant_id', None)
         session.pop('tenant_email', None)
@@ -586,6 +606,101 @@ def dashboard():
         is_trial_active=is_trial_active,
         trial_days_remaining=trial_days_remaining
     )
+
+
+@main.route('/dashboard-responsive')
+def dashboard_responsive():
+    """Enhanced responsive dashboard with mobile-first design"""
+    if 'landlord_id' not in session:
+        return redirect(url_for('main.login'))
+
+    landlord = Landlord.query.get(session['landlord_id'])
+    if not landlord:
+        flash('Please log in as a landlord to access the dashboard.', 'error')
+        return redirect(url_for('main.login'))
+
+    # Get basic stats
+    properties = Property.query.filter_by(landlord_id=landlord.id).all()
+    total_units = sum(len(p.units) for p in properties)
+    total_properties = len(properties)
+    
+    # Calculate payment stats
+    total_paid = 0
+    total_unpaid = 0
+    total_collected = 0
+    
+    for prop in properties:
+        for unit in prop.units:
+            if unit.tenant:
+                # Get current month payments
+                current_month = datetime.now().strftime('%B %Y')
+                month_payment = RentLog.query.filter_by(
+                    tenant_id=unit.tenant.id,
+                    month_paid_for=current_month
+                ).first()
+                
+                if month_payment and month_payment.amount_paid >= unit.rent_amount:
+                    total_paid += 1
+                    total_collected += month_payment.amount_paid
+                else:
+                    total_unpaid += 1
+                    if month_payment:
+                        total_collected += month_payment.amount_paid
+
+    # Get subscription data
+    subscription_service = SubscriptionService()
+    current_plan = subscription_service.get_landlord_plan(landlord.id)
+    usage_summary = subscription_service.get_usage_summary(landlord.id)
+    
+    # Check trial status
+    is_trial_active = subscription_service.is_trial_active(landlord.id)
+    trial_days_remaining = 0
+    if is_trial_active and landlord.trial_ends_at:
+        trial_days_remaining = (landlord.trial_ends_at - datetime.utcnow()).days
+
+    # Get recent activities (simplified for responsive demo)
+    recent_activities = []
+    recent_rent_logs = RentLog.query.filter_by(
+        landlord_id=landlord.id
+    ).order_by(RentLog.date_paid.desc()).limit(10).all()
+    
+    for rent_log in recent_rent_logs:
+        if rent_log.tenant and rent_log.tenant.unit and rent_log.tenant.unit.property:
+            recent_activities.append({
+                'property_name': rent_log.tenant.unit.property.name,
+                'unit_number': rent_log.tenant.unit.unit_number,
+                'tenant_name': rent_log.tenant.name,
+                'amount': rent_log.amount_paid,
+                'status': 'paid' if rent_log.amount_paid >= rent_log.tenant.unit.rent_amount else 'partial',
+                'date': rent_log.date_paid
+            })
+
+    return render_template(
+        'dashboard_responsive.html',
+        landlord=landlord,
+        total_units=total_units,
+        total_properties=total_properties,
+        total_paid=total_paid,
+        total_unpaid=total_unpaid,
+        total_collected=total_collected,
+        current_plan=current_plan,
+        usage=usage_summary,
+        is_trial_active=is_trial_active,
+        trial_days_remaining=trial_days_remaining,
+        recent_activities=recent_activities
+    )
+
+
+@main.route('/responsive-demo')
+def responsive_demo():
+    """Demo page for responsive design features"""
+    return render_template('responsive_demo.html')
+
+
+@main.route('/datatables-demo')
+def datatables_demo():
+    """Demo page for DataTables features"""
+    return render_template('datatables_demo.html')
 
 
 @main.route('/add_property', methods=['GET', 'POST'])
@@ -2965,6 +3080,39 @@ def test_email():
     except Exception as e:
         return jsonify({"success": False, "message": f"Email test failed: {str(e)}"})
 
+@main.route('/test_error_notification')
+def test_error_notification():
+    """Test route to verify error notification functionality"""
+    try:
+        # Simulate a critical error
+        ErrorNotificationService.log_and_notify_error(
+            error_type='TestError',
+            error_message='This is a test error notification to verify the system is working.',
+            stack_trace='Traceback (most recent call last):\n  File "test.py", line 1, in <module>\n    raise Exception("Test error")\nException: Test error',
+            user_id=1,
+            user_type='admin',
+            ip_address='127.0.0.1',
+            user_agent='Mozilla/5.0 (Test Browser)',
+            url='/test_error_notification',
+            method='GET',
+            severity='critical'
+        )
+        return jsonify({"success": True, "message": "Test error notification sent successfully"})
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Error notification test failed: {str(e)}"})
+
+@main.route('/test_daily_summary')
+def test_daily_summary():
+    """Test route to verify daily error summary functionality"""
+    try:
+        success = ErrorNotificationService.send_daily_error_summary()
+        if success:
+            return jsonify({"success": True, "message": "Daily error summary sent successfully"})
+        else:
+            return jsonify({"success": False, "message": "No errors to report in daily summary"})
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Daily summary test failed: {str(e)}"})
+
 @main.route('/property_history')
 def property_history():
     if 'landlord_id' not in session:
@@ -3026,5 +3174,585 @@ def property_history():
                          total_payments=total_payments,
                          paid_payments=paid_payments,
                          payment_rate=payment_rate)
+
+# Admin Routes and Monitoring
+@main.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        admin = Admin.query.filter_by(username=username, is_active=True).first()
+        
+        if admin and check_password_hash(admin.password, password):
+            session['admin_id'] = admin.id
+            session['admin_role'] = admin.role
+            
+            # Update last login
+            admin.last_login = datetime.utcnow()
+            db.session.commit()
+            
+            # Log successful login
+            log_system_event('info', 'auth', f'Admin login successful: {username}', 
+                           admin.id, 'admin', request.remote_addr, request.user_agent.string)
+            
+            flash('Welcome to Admin Dashboard!', 'success')
+            return redirect(url_for('main.admin_dashboard'))
+        else:
+            # Log failed login attempt
+            log_system_event('warning', 'auth', f'Failed admin login attempt: {username}', 
+                           None, 'admin', request.remote_addr, request.user_agent.string)
+            
+            flash('Invalid credentials. Please try again.', 'error')
+    
+    return render_template('admin/login.html')
+
+@main.route('/admin/logout')
+def admin_logout():
+    if 'admin_id' in session:
+        admin_id = session['admin_id']
+        log_system_event('info', 'auth', 'Admin logout', admin_id, 'admin', 
+                        request.remote_addr, request.user_agent.string)
+        
+        session.pop('admin_id', None)
+        session.pop('admin_role', None)
+    
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('main.admin_login'))
+
+@main.route('/admin/dashboard')
+def admin_dashboard():
+    if 'admin_id' not in session:
+        return redirect(url_for('main.admin_login'))
+    
+    # Get system statistics
+    stats = get_system_statistics()
+    
+    # Get recent activities
+    recent_logs = SystemLog.query.order_by(SystemLog.created_at.desc()).limit(10).all()
+    
+    # Get security alerts
+    security_alerts = SecurityAlert.query.filter_by(resolved=False).order_by(SecurityAlert.created_at.desc()).limit(5).all()
+    
+    # Get error logs
+    error_logs = ErrorLog.query.filter_by(resolved=False).order_by(ErrorLog.created_at.desc()).limit(5).all()
+    
+    # Get database health
+    db_health = DatabaseHealth.query.order_by(DatabaseHealth.recorded_at.desc()).first()
+    
+    return render_template('admin/dashboard.html', 
+                         stats=stats, 
+                         recent_logs=recent_logs,
+                         security_alerts=security_alerts,
+                         error_logs=error_logs,
+                         db_health=db_health)
+
+@main.route('/admin/users')
+def admin_users():
+    if 'admin_id' not in session:
+        return redirect(url_for('main.admin_login'))
+    
+    # Get all user types with pagination
+    page = request.args.get('page', 1, type=int)
+    user_type = request.args.get('type', 'all')
+    
+    if user_type == 'landlords':
+        users = Landlord.query.paginate(page=page, per_page=20, error_out=False)
+    elif user_type == 'tenants':
+        users = Tenant.query.paginate(page=page, per_page=20, error_out=False)
+    elif user_type == 'employees':
+        users = Employee.query.paginate(page=page, per_page=20, error_out=False)
+    else:
+        # Show landlords by default
+        users = Landlord.query.paginate(page=page, per_page=20, error_out=False)
+    
+    return render_template('admin/users.html', users=users, user_type=user_type)
+
+@main.route('/admin/analytics')
+def admin_analytics():
+    if 'admin_id' not in session:
+        return redirect(url_for('main.admin_login'))
+    
+    # Get analytics data
+    analytics = get_analytics_data()
+    
+    return render_template('admin/analytics.html', analytics=analytics)
+
+@main.route('/admin/security')
+def admin_security():
+    if 'admin_id' not in session:
+        return redirect(url_for('main.admin_login'))
+    
+    # Get security data
+    login_attempts = LoginAttempt.query.order_by(LoginAttempt.created_at.desc()).limit(50).all()
+    security_alerts = SecurityAlert.query.order_by(SecurityAlert.created_at.desc()).limit(20).all()
+    
+    return render_template('admin/security.html', 
+                         login_attempts=login_attempts,
+                         security_alerts=security_alerts)
+
+@main.route('/admin/logs')
+def admin_logs():
+    if 'admin_id' not in session:
+        return redirect(url_for('main.admin_login'))
+    
+    # Get logs with filters
+    level = request.args.get('level', 'all')
+    category = request.args.get('category', 'all')
+    page = request.args.get('page', 1, type=int)
+    
+    query = SystemLog.query
+    
+    if level != 'all':
+        query = query.filter_by(level=level)
+    if category != 'all':
+        query = query.filter_by(category=category)
+    
+    logs = query.order_by(SystemLog.created_at.desc()).paginate(page=page, per_page=50, error_out=False)
+    
+    return render_template('admin/logs.html', logs=logs, level=level, category=category)
+
+@main.route('/admin/errors')
+def admin_errors():
+    if 'admin_id' not in session:
+        return redirect(url_for('main.admin_login'))
+    
+    page = request.args.get('page', 1, type=int)
+    resolved = request.args.get('resolved', 'unresolved')
+    
+    query = ErrorLog.query
+    
+    if resolved == 'resolved':
+        query = query.filter_by(resolved=True)
+    elif resolved == 'unresolved':
+        query = query.filter_by(resolved=False)
+    
+    errors = query.order_by(ErrorLog.created_at.desc()).paginate(page=page, per_page=20, error_out=False)
+    
+    return render_template('admin/errors.html', errors=errors, resolved=resolved)
+
+@main.route('/admin/error/<int:error_id>/resolve', methods=['POST'])
+def resolve_error(error_id):
+    if 'admin_id' not in session:
+        return redirect(url_for('main.admin_login'))
+    
+    error = ErrorLog.query.get_or_404(error_id)
+    error.resolved = True
+    error.resolved_at = datetime.utcnow()
+    error.resolved_by = session['admin_id']
+    db.session.commit()
+    
+    # Log the action
+    log_system_event('info', 'error', f'Admin resolved error {error_id}', 
+                     session['admin_id'], 'admin', request.remote_addr, request.user_agent.string)
+    
+    flash('Error marked as resolved.', 'success')
+    return redirect(url_for('main.admin_errors'))
+
+@main.route('/admin/change-password', methods=['GET', 'POST'])
+def admin_change_password():
+    if 'admin_id' not in session:
+        return redirect(url_for('main.admin_login'))
+    
+    admin = Admin.query.get(session['admin_id'])
+    if not admin:
+        flash('Admin user not found.', 'error')
+        return redirect(url_for('main.admin_login'))
+    
+    if request.method == 'POST':
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+        
+        # Validate current password
+        if not check_password_hash(admin.password, current_password):
+            flash('Current password is incorrect.', 'error')
+            return render_template('admin/change_password.html')
+        
+        # Validate new password
+        if len(new_password) < 6:
+            flash('New password must be at least 6 characters long.', 'error')
+            return render_template('admin/change_password.html')
+        
+        # Validate password confirmation
+        if new_password != confirm_password:
+            flash('New passwords do not match.', 'error')
+            return render_template('admin/change_password.html')
+        
+        # Update password
+        try:
+            admin.password = generate_password_hash(new_password)
+            admin.updated_at = datetime.utcnow()
+            db.session.commit()
+            
+            # Log password change
+            log_system_event('info', 'auth', f'Admin password changed: {admin.username}', 
+                           admin.id, 'admin', request.remote_addr, request.user_agent.string)
+            
+            flash('Password updated successfully!', 'success')
+            return redirect(url_for('main.admin_dashboard'))
+        except Exception as e:
+            flash(f'Error updating password: {str(e)}', 'error')
+            db.session.rollback()
+    
+    return render_template('admin/change_password.html')
+
+@main.route('/admin/alert/<int:alert_id>/resolve', methods=['POST'])
+def resolve_alert(alert_id):
+    if 'admin_id' not in session:
+        return redirect(url_for('main.admin_login'))
+    
+    alert = SecurityAlert.query.get_or_404(alert_id)
+    alert.resolved = True
+    alert.resolved_at = datetime.utcnow()
+    alert.resolved_by = session['admin_id']
+    
+    db.session.commit()
+    
+    flash('Security alert marked as resolved.', 'success')
+    return redirect(url_for('main.admin_security'))
+
+# Global error handler
+@main.errorhandler(Exception)
+def handle_exception(e):
+    """Global exception handler that logs errors and sends notifications"""
+    try:
+        # Get error details
+        error_type = type(e).__name__
+        error_message = str(e)
+        stack_trace = traceback.format_exc()
+        
+        # Get request details
+        user_id = session.get('landlord_id') or session.get('admin_id') or session.get('employee_id')
+        user_type = 'landlord' if 'landlord_id' in session else 'admin' if 'admin_id' in session else 'employee' if 'employee_id' in session else 'guest'
+        
+        # Determine severity based on error type
+        severity = 'critical' if error_type in ['DatabaseError', 'ConnectionError', 'SecurityViolation'] else 'high'
+        
+        # Log and notify about the error
+        ErrorNotificationService.log_and_notify_error(
+            error_type=error_type,
+            error_message=error_message,
+            stack_trace=stack_trace,
+            user_id=user_id,
+            user_type=user_type,
+            ip_address=request.remote_addr if request else None,
+            user_agent=request.user_agent.string if request and request.user_agent else None,
+            url=request.url if request else None,
+            method=request.method if request else None,
+            severity=severity
+        )
+        
+        # Log system event
+        log_system_event('error', 'system', f'Unhandled exception: {error_type} - {error_message}', 
+                        user_id, user_type, request.remote_addr if request else None, 
+                        request.user_agent.string if request and request.user_agent else None)
+        
+    except Exception as notification_error:
+        print(f"Failed to handle exception notification: {notification_error}")
+    
+    # Return a generic error response
+    return render_template('error.html', error="An unexpected error occurred. Please try again."), 500
+
+# Helper functions for admin functionality
+def log_system_event(level, category, message, user_id=None, user_type=None, ip_address=None, user_agent=None):
+    """Log system events for monitoring"""
+    try:
+        log = SystemLog(
+            level=level,
+            category=category,
+            message=message,
+            user_id=user_id,
+            user_type=user_type,
+            ip_address=ip_address,
+            user_agent=user_agent
+        )
+        db.session.add(log)
+        db.session.commit()
+    except Exception as e:
+        print(f"Error logging system event: {e}")
+
+def log_login_attempt(email, user_type, success, ip_address=None, user_agent=None, failure_reason=None):
+    """Log login attempts for security monitoring"""
+    try:
+        attempt = LoginAttempt(
+            email=email,
+            user_type=user_type,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            success=success,
+            failure_reason=failure_reason
+        )
+        db.session.add(attempt)
+        db.session.commit()
+    except Exception as e:
+        print(f"Error logging login attempt: {e}")
+
+def get_system_statistics():
+    """Get comprehensive system statistics"""
+    try:
+        stats = {
+            'total_landlords': Landlord.query.count(),
+            'total_tenants': Tenant.query.count(),
+            'total_employees': Employee.query.count(),
+            'total_properties': Property.query.count(),
+            'total_units': Unit.query.count(),
+            'total_rent_logs': RentLog.query.count(),
+            'total_invoices': Invoice.query.count(),
+            'active_subscriptions': Subscription.query.filter_by(status='active').count(),
+            'trial_users': Landlord.query.filter_by(is_trial_active=True).count(),
+            'recent_logins': LoginAttempt.query.filter(
+                LoginAttempt.created_at >= datetime.utcnow() - timedelta(hours=24)
+            ).count(),
+            'failed_logins': LoginAttempt.query.filter(
+                LoginAttempt.created_at >= datetime.utcnow() - timedelta(hours=24),
+                LoginAttempt.success == False
+            ).count(),
+            'unresolved_errors': ErrorLog.query.filter_by(resolved=False).count(),
+            'security_alerts': SecurityAlert.query.filter_by(resolved=False).count()
+        }
+        return stats
+    except Exception as e:
+        print(f"Error getting system statistics: {e}")
+        return {}
+
+def get_analytics_data():
+    """Get analytics data for charts and reports"""
+    try:
+        # Get user growth over time
+        user_growth_data = db.session.query(
+            db.func.date(Landlord.created_at).label('date'),
+            db.func.count(Landlord.id).label('count')
+        ).group_by(db.func.date(Landlord.created_at)).order_by(db.func.date(Landlord.created_at)).all()
+        
+        # Calculate user growth percentage (comparing current month to previous month)
+        current_month = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        last_month = (current_month - timedelta(days=1)).replace(day=1)
+        
+        current_month_users = Landlord.query.filter(
+            Landlord.created_at >= current_month
+        ).count()
+        
+        last_month_users = Landlord.query.filter(
+            Landlord.created_at >= last_month,
+            Landlord.created_at < current_month
+        ).count()
+        
+        user_growth_percentage = 0
+        if last_month_users > 0:
+            user_growth_percentage = ((current_month_users - last_month_users) / last_month_users) * 100
+        elif current_month_users > 0:
+            user_growth_percentage = 100  # New users this month
+        
+        # Get revenue data
+        revenue_data = db.session.query(
+            db.func.date(RentLog.date_paid).label('date'),
+            db.func.sum(RentLog.amount_paid).label('amount')
+        ).group_by(db.func.date(RentLog.date_paid)).order_by(db.func.date(RentLog.date_paid)).all()
+        
+        # Calculate monthly revenue
+        monthly_revenue = db.session.query(
+            db.func.sum(RentLog.amount_paid)
+        ).filter(
+            RentLog.date_paid >= current_month
+        ).scalar() or 0
+        
+        # Get subscription statistics
+        active_subscriptions = Subscription.query.filter_by(status='active').count()
+        trial_users = Landlord.query.filter_by(is_trial_active=True).count()
+        
+        # Calculate conversion rate (trial to paid)
+        total_landlords = Landlord.query.count()
+        conversion_rate = 0
+        if total_landlords > 0:
+            conversion_rate = (active_subscriptions / total_landlords) * 100
+        
+        # Get active users (users who logged in within last 30 days)
+        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+        active_users = LoginAttempt.query.filter(
+            LoginAttempt.created_at >= thirty_days_ago,
+            LoginAttempt.success == True
+        ).distinct(LoginAttempt.email).count()
+        
+        # Get usage statistics
+        usage_stats = {
+            'sms_sent': UsageLog.query.with_entities(db.func.sum(UsageLog.sms_sent)).scalar() or 0,
+            'emails_sent': UsageLog.query.with_entities(db.func.sum(UsageLog.email_sent)).scalar() or 0,
+            'pdfs_generated': UsageLog.query.with_entities(db.func.sum(UsageLog.pdf_generated)).scalar() or 0,
+            'api_calls': UsageLog.query.with_entities(db.func.sum(UsageLog.api_calls)).scalar() or 0
+        }
+        
+        # Get plan distribution
+        plan_distribution = db.session.query(
+            Subscription.plan_type,
+            db.func.count(Subscription.id)
+        ).filter_by(status='active').group_by(Subscription.plan_type).all()
+        
+        plan_dist = {}
+        for plan, count in plan_distribution:
+            plan_dist[plan] = count
+        
+        # Get feature usage
+        feature_usage = {
+            'SMS Notifications': usage_stats['sms_sent'],
+            'Email Invoices': usage_stats['emails_sent'],
+            'PDF Generation': usage_stats['pdfs_generated'],
+            'API Calls': usage_stats['api_calls']
+        }
+        
+        # Performance metrics
+        avg_response_time = 150  # Mock data - in real app, this would come from monitoring
+        error_rate = ErrorLog.query.filter_by(resolved=False).count()
+        uptime = 99.9  # Mock data
+        
+        # Convert date objects to strings for JSON serialization
+        serializable_user_growth = []
+        for date, count in user_growth_data:
+            serializable_user_growth.append([date.isoformat() if hasattr(date, 'isoformat') else str(date), count])
+        
+        serializable_revenue_data = []
+        for date, amount in revenue_data:
+            serializable_revenue_data.append([date.isoformat() if hasattr(date, 'isoformat') else str(date), float(amount) if amount else 0])
+        
+        return {
+            'user_growth': float(user_growth_percentage),
+            'monthly_revenue': float(monthly_revenue),
+            'conversion_rate': float(conversion_rate),
+            'active_users': int(active_users),
+            'user_growth_data': serializable_user_growth,
+            'revenue_data': serializable_revenue_data,
+            'usage_stats': usage_stats,
+            'plan_distribution': plan_dist,
+            'feature_usage': feature_usage,
+            'avg_response_time': float(avg_response_time),
+            'error_rate': int(error_rate),
+            'uptime': float(uptime)
+        }
+    except Exception as e:
+        print(f"Error getting analytics data: {e}")
+        return {}
+
+@main.route('/admin/subscriptions')
+def admin_subscriptions():
+    if 'admin_id' not in session:
+        return redirect(url_for('main.admin_login'))
+    
+    # Get subscription data with filters
+    page = request.args.get('page', 1, type=int)
+    status_filter = request.args.get('status', 'all')
+    plan_filter = request.args.get('plan', 'all')
+    
+    # Build query
+    query = Subscription.query.join(Landlord)
+    
+    if status_filter != 'all':
+        query = query.filter(Subscription.status == status_filter)
+    if plan_filter != 'all':
+        query = query.filter(Subscription.plan_type == plan_filter)
+    
+    subscriptions = query.order_by(Subscription.created_at.desc()).paginate(page=page, per_page=20, error_out=False)
+    
+    # Get subscription statistics
+    total_subscriptions = Subscription.query.count()
+    active_subscriptions = Subscription.query.filter_by(status='active').count()
+    trial_users = Landlord.query.filter_by(is_trial_active=True).count()
+    cancelled_subscriptions = Subscription.query.filter_by(status='cancelled').count()
+    
+    # Get revenue statistics
+    monthly_revenue = db.session.query(db.func.sum(Subscription.amount)).filter(
+        Subscription.status == 'active',
+        Subscription.billing_cycle == 'monthly'
+    ).scalar() or 0
+    
+    yearly_revenue = db.session.query(db.func.sum(Subscription.amount)).filter(
+        Subscription.status == 'active',
+        Subscription.billing_cycle == 'yearly'
+    ).scalar() or 0
+    
+    # Get plan distribution
+    plan_stats = db.session.query(
+        Subscription.plan_type,
+        db.func.count(Subscription.id)
+    ).filter(Subscription.status == 'active').group_by(Subscription.plan_type).all()
+    
+    return render_template('admin/subscriptions.html', 
+                         subscriptions=subscriptions,
+                         status_filter=status_filter,
+                         plan_filter=plan_filter,
+                         stats={
+                             'total': total_subscriptions,
+                             'active': active_subscriptions,
+                             'trial': trial_users,
+                             'cancelled': cancelled_subscriptions,
+                             'monthly_revenue': monthly_revenue,
+                             'yearly_revenue': yearly_revenue,
+                             'plan_distribution': plan_stats
+                         })
+
+@main.route('/admin/subscription/<int:subscription_id>')
+def admin_subscription_detail(subscription_id):
+    if 'admin_id' not in session:
+        return redirect(url_for('main.admin_login'))
+    
+    subscription = Subscription.query.get_or_404(subscription_id)
+    landlord = Landlord.query.get(subscription.landlord_id)
+    plan = PricingPlan.query.filter_by(code=subscription.plan_type).first()
+    
+    # Parse plan features JSON
+    features = []
+    if plan and plan.features:
+        try:
+            import json
+            features = json.loads(plan.features)
+        except (json.JSONDecodeError, TypeError):
+            features = []
+    
+    # Get usage data
+    usage_logs = UsageLog.query.filter_by(landlord_id=subscription.landlord_id).order_by(UsageLog.month.desc()).limit(12).all()
+    
+    # Get payment history
+    payment_history = []  # This would be populated from a payment model if available
+    
+    return render_template('admin/subscription_detail.html',
+                         subscription=subscription,
+                         landlord=landlord,
+                         plan=plan,
+                         features=features,
+                         usage_logs=usage_logs,
+                         payment_history=payment_history)
+
+@main.route('/admin/subscription/<int:subscription_id>/cancel', methods=['POST'])
+def admin_cancel_subscription(subscription_id):
+    if 'admin_id' not in session:
+        return redirect(url_for('main.admin_login'))
+    
+    subscription = Subscription.query.get_or_404(subscription_id)
+    subscription.status = 'cancelled'
+    subscription.end_date = datetime.utcnow()
+    db.session.commit()
+    
+    # Log the action
+    log_system_event('info', 'subscription', f'Admin cancelled subscription {subscription_id}', 
+                     session['admin_id'], 'admin', request.remote_addr, request.user_agent.string)
+    
+    flash('Subscription cancelled successfully.', 'success')
+    return redirect(url_for('main.admin_subscription_detail', subscription_id=subscription_id))
+
+@main.route('/admin/subscription/<int:subscription_id>/reactivate', methods=['POST'])
+def admin_reactivate_subscription(subscription_id):
+    if 'admin_id' not in session:
+        return redirect(url_for('main.admin_login'))
+    
+    subscription = Subscription.query.get_or_404(subscription_id)
+    subscription.status = 'active'
+    subscription.end_date = None
+    db.session.commit()
+    
+    # Log the action
+    log_system_event('info', 'subscription', f'Admin reactivated subscription {subscription_id}', 
+                     session['admin_id'], 'admin', request.remote_addr, request.user_agent.string)
+    
+    flash('Subscription reactivated successfully.', 'success')
+    return redirect(url_for('main.admin_subscription_detail', subscription_id=subscription_id))
 
 

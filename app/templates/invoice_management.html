@@ -35,7 +35,8 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full">
+            <table class="w-full datatable" id="tenants-table" 
+                   data-datatable-options='{"pageLength": 15, "order": [[0, "asc"]], "dom": "<\"top\"lfB>rt<\"bottom\"ip><\"clear\">", "buttons": ["copy", "excel", "pdf", "print"]}'>
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">

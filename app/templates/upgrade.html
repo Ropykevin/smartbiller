@@ -132,7 +132,7 @@
                     </div>
                     <div class="w-full bg-blue-200 rounded-full h-3 mb-2">
                         <div class="bg-blue-600 h-3 rounded-full transition-all duration-500"
-                            style="width: {{ ((usage.properties_count|default(0)) / (current_plan.max_properties|default(1)) * 100)|round }}%">
+                            style="width: {{ ((usage.properties_count|default(0)) / (current_plan.max_properties|default(1)) * 100)|round }}%;">
                         </div>
                     </div>
                     {% if usage.properties_count|default(0) >= current_plan.max_properties|default(0) %}
@@ -165,7 +165,7 @@
                     </div>
                     <div class="w-full bg-purple-200 rounded-full h-3 mb-2">
                         <div class="bg-purple-600 h-3 rounded-full transition-all duration-500"
-                            style="width: {{ ((usage.sms_sent|default(0)) / (current_plan.max_sms_per_month|default(1)) * 100)|round }}%">
+                            style="width: {{ ((usage.sms_sent|default(0)) / (current_plan.max_sms_per_month|default(1)) * 100)|round }}%;">
                         </div>
                     </div>
                 </div>

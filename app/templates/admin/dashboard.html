@@ -1,0 +1,173 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Admin Dashboard - SmartBiller{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Statistics Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Total Users -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">Total Users</p>
+                <p class="text-3xl font-bold text-gray-900">{{ stats.total_users }}</p>
+            </div>
+            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-users text-blue-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Subscriptions -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">Active Subscriptions</p>
+                <p class="text-3xl font-bold text-green-600">{{ stats.active_subscriptions }}</p>
+            </div>
+            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-check-circle text-green-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trial Users -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">Trial Users</p>
+                <p class="text-3xl font-bold text-purple-600">{{ stats.trial_users }}</p>
+            </div>
+            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-gift text-purple-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Health -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">System Health</p>
+                <p class="text-3xl font-bold text-yellow-600">{{ stats.system_health }}</p>
+            </div>
+            <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-heartbeat text-yellow-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity and Alerts -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    <!-- Recent System Logs -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">Recent System Logs</h3>
+            <a href="{{ url_for('main.admin_logs') }}" class="text-purple-600 hover:text-purple-700 text-sm">
+                View All
+            </a>
+        </div>
+        <div class="space-y-4">
+            {% for log in recent_logs %}
+            <div class="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                <div class="w-2 h-2 rounded-full mt-2
+                    {% if log.level == 'error' %}bg-red-500
+                    {% elif log.level == 'warning' %}bg-yellow-500
+                    {% else %}bg-green-500{% endif %}"></div>
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-900">{{ log.message }}</p>
+                    <p class="text-xs text-gray-500">{{ log.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                </div>
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-sm">No recent logs</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Security Alerts -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">Security Alerts</h3>
+            <a href="{{ url_for('main.admin_security') }}" class="text-purple-600 hover:text-purple-700 text-sm">
+                View All
+            </a>
+        </div>
+        <div class="space-y-4">
+            {% for alert in security_alerts %}
+            <div class="flex items-start space-x-3 p-3 bg-red-50 rounded-lg border border-red-200">
+                <i class="fas fa-exclamation-triangle text-red-500 mt-1"></i>
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-red-900">{{ alert.title }}</p>
+                    <p class="text-xs text-red-700">{{ alert.description }}</p>
+                    <p class="text-xs text-red-600">{{ alert.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                </div>
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-sm">No security alerts</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Error Logs and Database Health -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Error Logs -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">Recent Errors</h3>
+            <a href="{{ url_for('main.admin_errors') }}" class="text-purple-600 hover:text-purple-700 text-sm">
+                View All
+            </a>
+        </div>
+        <div class="space-y-4">
+            {% for error in error_logs %}
+            <div class="flex items-start space-x-3 p-3 bg-red-50 rounded-lg border border-red-200">
+                <i class="fas fa-bug text-red-500 mt-1"></i>
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-red-900">{{ error.error_type }}</p>
+                    <p class="text-xs text-red-700">{{ error.error_message[:100] }}{% if error.error_message|length >
+                        100 %}...{%
+                        endif %}</p>
+                    <p class="text-xs text-red-600">{{ error.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                </div>
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-sm">No recent errors</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Database Health -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">Database Health</h3>
+            <span
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                Healthy
+            </span>
+        </div>
+        {% if db_health %}
+        <div class="space-y-3">
+            <div class="flex justify-between">
+                <span class="text-sm text-gray-600">Response Time:</span>
+                <span class="text-sm font-medium text-gray-900">{{ db_health.response_time }}ms</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-sm text-gray-600">Active Connections:</span>
+                <span class="text-sm font-medium text-gray-900">{{ db_health.active_connections }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-sm text-gray-600">Last Check:</span>
+                <span class="text-sm font-medium text-gray-900">{{ db_health.recorded_at.strftime('%Y-%m-%d %H:%M')
+                    }}</span>
+            </div>
+        </div>
+        {% else %}
+        <p class="text-gray-500 text-sm">No database health data available</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
