@@ -2659,6 +2659,7 @@ def upgrade_plan(plan):
     
     # Get plan details
     plan_details = SubscriptionService.get_plan_by_code(plan)
+    print(f"DEBUG: Plan details: {plan_details}")
     if not plan_details:
         flash('Invalid plan selected.', 'error')
         return redirect(url_for('main.upgrade'))
@@ -2667,6 +2668,7 @@ def upgrade_plan(plan):
                          plan=plan_details, 
                          landlord=landlord,
                          current_plan=SubscriptionService.get_landlord_plan(landlord.id))
+                         
 
 @main.route('/process_payment', methods=['POST'])
 def process_payment():
