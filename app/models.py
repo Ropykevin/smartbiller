@@ -20,6 +20,9 @@ class Landlord(db.Model):
     
     # Theme preference
     theme_preference = db.Column(db.String(10), default='light')  # 'light' or 'dark'
+    # Email verification fields
+    is_email_verified = db.Column(db.Boolean, default=False)
+    email_verification_code = db.Column(db.String(10))
 
 class Subscription(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -322,3 +325,11 @@ class SecurityAlert(db.Model):
     resolved_at = db.Column(db.DateTime)
     resolved_by = db.Column(db.Integer, db.ForeignKey('admin.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow) 
+
+class SentEmail(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    subject = db.Column(db.String(255), nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    sender = db.Column(db.String(120), nullable=False)
+    recipient = db.Column(db.String(120), nullable=False)
+    sent_at = db.Column(db.DateTime, default=datetime.utcnow) 

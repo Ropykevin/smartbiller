@@ -20,6 +20,9 @@ import json
 import traceback
 from app.subscription_service import SubscriptionService
 from app.error_notification import ErrorNotificationService
+from app.models import SentEmail
+from app import db
+from app.models import Invoice
 
 # Create blueprint
 main = Blueprint('main', __name__)
@@ -252,26 +255,54 @@ def index():
 
 @main.route('/register', methods=['GET', 'POST'])
 def register():
+    from app import db
     if request.method == 'POST':
-        name = request.form['name']
-        email = request.form['email']
-        phone = request.form.get('phone')  # Optional phone field
-        password = generate_password_hash(request.form['password'])
-        if Landlord.query.filter_by(email=email).first():
-            flash('Email already registered.', 'error')
-            return redirect(url_for('main.register'))
-        landlord = Landlord(
-            name=name, 
-            email=email,
-            phone=phone if phone else None,
-            password=password,
-            trial_ends_at=datetime.utcnow() + timedelta(days=30),
-            is_trial_active=True
-        )
-        db.session.add(landlord)
-        db.session.commit()
-        flash('Registration successful. Please log in.', 'success')
-        return redirect(url_for('main.login'))
+        try:
+            name = request.form['name']
+            email = request.form['email']
+            phone = request.form.get('phone')  # Optional phone field
+            password = generate_password_hash(request.form['password'])
+            if Landlord.query.filter_by(email=email).first():
+                flash('Email already registered.', 'error')
+                return redirect(url_for('main.register'))
+            # Generate verification code
+            import random
+            verification_code = str(random.randint(100000, 999999))
+            landlord = Landlord(
+                name=name, 
+                email=email,
+                phone=phone if phone else None,
+                password=password,
+                trial_ends_at=datetime.utcnow() + timedelta(days=30),
+                is_trial_active=True,
+                is_email_verified=False,
+                email_verification_code=verification_code
+            )
+            db.session.add(landlord)
+            db.session.commit()
+            # Send verification email
+            from app import mail
+            from flask_mail import Message
+            from app.models import SentEmail
+            subject = 'Verify your SmartBiller account'
+            body = f'Hello {name},\n\nYour verification code is: {verification_code}\n\nEnter this code to verify your email and activate your account.'
+            msg = Message(subject=subject, recipients=[email], body=body)
+            mail.send(msg)
+            sent_email = SentEmail(subject=subject, body=body, sender='ropykevin@gmail.com', recipient=email)
+            db.session.add(sent_email)
+            db.session.commit()
+            flash('Registration successful. Please check your email for a verification code.', 'success')
+            return redirect(url_for('main.verify_landlord', email=email))
+        except Exception as e:
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
+            import traceback
+            print('Registration error:', e)
+            traceback.print_exc()
+            flash('An error occurred during registration. Please try again or contact support.', 'error')
+            return render_template('register.html')
     return render_template('register.html')
 
 
@@ -705,6 +736,7 @@ def datatables_demo():
 
 @main.route('/add_property', methods=['GET', 'POST'])
 def add_property():
+    from app import db
     if 'landlord_id' not in session:
         flash('Please log in to add a property.')
         return redirect(url_for('main.login'))
@@ -738,7 +770,10 @@ def add_property():
             flash('Property added successfully!', 'success')
             return redirect(url_for('main.dashboard'))
         except Exception as e:
-            db.session.rollback()
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
             flash(f'Error adding property: {str(e)}', 'error')
             return render_template('add_property.html')
     return render_template('add_property.html')
@@ -746,6 +781,7 @@ def add_property():
 
 @main.route('/add_unit', methods=['GET', 'POST'])
 def add_unit_selector():
+    from app import db
     if 'landlord_id' not in session:
         return redirect(url_for('main.login'))
     
@@ -837,7 +873,10 @@ def add_unit(property_id):
                 return redirect(url_for('main.add_unit', property_id=property_id))
                 
         except Exception as e:
-            db.session.rollback()
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
             if is_ajax:
                 return jsonify({'success': False, 'message': str(e)})
             else:
@@ -849,6 +888,7 @@ def add_unit(property_id):
 
 @main.route('/unit/<int:unit_id>/edit', methods=['GET', 'POST'])
 def edit_unit(unit_id):
+    from app import db
     if 'landlord_id' not in session:
         return redirect(url_for('main.login'))
     
@@ -875,7 +915,10 @@ def edit_unit(unit_id):
                 return redirect(url_for('main.dashboard'))
                 
         except Exception as e:
-            db.session.rollback()
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
             if is_ajax:
                 return jsonify({'success': False, 'message': str(e)})
             else:
@@ -887,6 +930,7 @@ def edit_unit(unit_id):
 
 @main.route('/unit/<int:unit_id>/delete', methods=['POST'])
 def delete_unit(unit_id):
+    from app import db
     if 'landlord_id' not in session:
         return redirect(url_for('main.login'))
     
@@ -906,12 +950,16 @@ def delete_unit(unit_id):
         db.session.commit()
         return jsonify({'success': True, 'message': 'Unit deleted successfully!'})
     except Exception as e:
-        db.session.rollback()
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
         return jsonify({'success': False, 'message': str(e)})
 
 
 @main.route('/unit/<int:unit_id>/add_tenant', methods=['GET', 'POST'])
 def add_tenant(unit_id):
+    from app import db
     if 'landlord_id' not in session:
         return redirect(url_for('main.login'))
     
@@ -987,7 +1035,10 @@ def add_tenant(unit_id):
             return redirect(url_for('main.dashboard'))
             
         except Exception as e:
-            db.session.rollback()
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
             flash(f'Error adding tenant: {str(e)}')
             return redirect(url_for('main.add_tenant', unit_id=unit_id))
     
@@ -996,6 +1047,7 @@ def add_tenant(unit_id):
 
 @main.route('/tenant/<int:tenant_id>/log_rent', methods=['GET', 'POST'])
 def log_rent(tenant_id):
+    from app import db
     if 'landlord_id' not in session:
         return redirect(url_for('main.login'))
 
@@ -1208,17 +1260,64 @@ def send_reminders():
         for unit in prop.units:
             tenant = unit.tenant
             if tenant:
-                paid = RentLog.query.filter_by(
+                print(f"Checking tenant: {tenant.name}, email: {tenant.email}")
+                paid_log = RentLog.query.filter_by(
                     tenant_id=tenant.id, month_paid_for=current_month).first()
-                if not paid:
-                    message = f"Dear {tenant.name}, your rent for {current_month} is due. Please pay {unit.rent_amount}."
+                if paid_log:
+                    print(f"RentLog for {tenant.name}: status={paid_log.status}, amount_paid={paid_log.amount_paid}")
+                else:
+                    print(f"No RentLog for {tenant.name} for {current_month}")
+                if not paid_log or paid_log.status != 'Paid':
+                    print(f"Tenant {tenant.name} is due for a reminder.")
+                    # Find invoice for this tenant for the current month
+                    invoice = Invoice.query.filter_by(
+                        tenant_id=tenant.id,
+                        month=current_month.split()[0],
+                        year=int(current_month.split()[1])
+                    ).first()
+                    if invoice:
+                        total_due = invoice.total_amount
+                        message = f"Dear {tenant.name}, your rent for {current_month} is due. Please pay KES {total_due:,.2f}."
+                        # Optionally, list additional charges
+                        if invoice.additional_charges:
+                            try:
+                                import json
+                                charges = json.loads(invoice.additional_charges)
+                                if charges:
+                                    message += "\nAdditional Charges:"
+                                    for charge in charges:
+                                        message += f"\n- {charge['description']}: KES {charge['amount']:,.2f}"
+                            except Exception:
+                                pass
+                    else:
+                        message = f"Dear {tenant.name}, your rent for {current_month} is due. Please pay KES {unit.rent_amount:,.2f}."
                     send_sms(tenant.phone, message)
+                    # Send reminder via email
+                    if tenant.email:
+                        print(f"Attempting to send reminder email to {tenant.email}")
+                        try:
+                            from app import mail
+                            from flask_mail import Message
+                            from app.models import SentEmail, db
+                            subject = f"Rent Reminder for {current_month}"
+                            body = message
+                            msg = Message(subject=subject, recipients=[tenant.email], body=body)
+                            mail.send(msg)
+                            sent_email = SentEmail(subject=subject, body=body, sender='ropykevin@gmail.com', recipient=tenant.email)
+                            db.session.add(sent_email)
+                            db.session.commit()
+                            print(f"Sent reminder email to {tenant.email}")
+                        except Exception as e:
+                            print(f"Failed to send reminder email to {tenant.email}: {e}")
+                else:
+                    print(f"Tenant {tenant.name} has already paid for {current_month}.")
     flash('Reminders sent! (Check console for mock SMS)')
     return redirect(url_for('main.dashboard'))
 
 
 @main.route('/send_notice', methods=['GET', 'POST'])
 def send_notice():
+    from app import db
     if 'landlord_id' not in session:
         return redirect(url_for('main.login'))
 
@@ -1256,6 +1355,18 @@ def send_notice():
 
         # Send notice (SMS/Email logic can go here)
         send_sms(tenant.phone, msg_filled)
+        # Send notice via email
+        if tenant.email:
+            from app import mail
+            from flask_mail import Message
+            from app.models import SentEmail, db
+            email_subject = subject or 'Notice from your landlord'
+            email_body = msg_filled
+            msg = Message(subject=email_subject, recipients=[tenant.email], body=email_body)
+            mail.send(msg)
+            sent_email = SentEmail(subject=email_subject, body=email_body, sender='ropykevin@gmail.com', recipient=tenant.email)
+            db.session.add(sent_email)
+            db.session.commit()
 
         flash("Notice sent successfully!")
         return redirect(url_for('main.dashboard'))
@@ -1301,6 +1412,7 @@ def unit_history(unit_id):
 
 @main.route('/tenant/<int:tenant_id>/update', methods=['GET', 'POST'])
 def update_tenant(tenant_id):
+    from app import db
     if 'landlord_id' not in session:
         flash('Please log in to update tenant information.')
         return redirect(url_for('main.login'))
@@ -1337,7 +1449,10 @@ def update_tenant(tenant_id):
             flash('Tenant information updated successfully!')
             return redirect(url_for('main.dashboard'))
         except Exception as e:
-            db.session.rollback()
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
             flash(f'Error updating tenant: {str(e)}')
             return render_template('update_tenant.html', tenant=tenant)
     
@@ -1379,15 +1494,24 @@ def contact():
                 flash('Please fill in all required fields.')
                 return render_template('contact.html')
             
-            # Here you would typically send an email or save to database
-            # For now, we'll just show a success message
+            # Send email to admin/support
+            from app import mail
+            from flask_mail import Message
+            from app.models import SentEmail, db
+            subject = 'New Contact Form Submission'
+            body = f"Name: {name}\nEmail: {email}\nMessage: {message}"
+            admin_email = 'ropykevin@gmail.com'
+            msg = Message(subject=subject, recipients=[admin_email], body=body)
+            mail.send(msg)
+            # Log sent email
+            sent_email = SentEmail(subject=subject, body=body, sender=email, recipient=admin_email)
+            db.session.add(sent_email)
+            db.session.commit()
             flash('Thank you for your message! We will get back to you soon.')
             return redirect(url_for('main.contact'))
-            
         except Exception as e:
             flash(f'Error sending message: {str(e)}')
             return render_template('contact.html')
-    
     return render_template('contact.html')
 
 
@@ -1419,6 +1543,7 @@ def chatbot_api():
 
 @main.route('/tenant_login', methods=['GET', 'POST'])
 def tenant_login():
+    from app import db
     if request.method == 'POST':
         email = request.form['email']
         
@@ -1456,6 +1581,19 @@ def tenant_login():
         # Send code via SMS (mock)
         send_sms(
             tenant.phone, f'Your SmartBiller login code is: {code}. It expires in 10 minutes.')
+        
+        # Send code via email
+        from app import mail
+        from flask_mail import Message
+        from app.models import SentEmail, db
+        subject = 'Your SmartBiller Login Code'
+        body = f'Hello {tenant.name},\n\nYour SmartBiller login code is: {code}. It expires in 10 minutes.'
+        msg = Message(subject=subject, recipients=[tenant.email], body=body)
+        mail.send(msg)
+        sent_email = SentEmail(subject=subject, body=body, sender='ropykevin@gmail.com', recipient=tenant.email)
+        db.session.add(sent_email)
+        db.session.commit()
+        
         session['tenant_email'] = email
         flash(f'Login code sent to {email}. Please check your email and enter the 6-digit code.', 'success')
         return redirect(url_for('main.tenant_verify'))
@@ -1561,14 +1699,14 @@ def tenant_invoices():
 
 @main.route('/tenant/exit_notice', methods=['GET', 'POST'])
 def tenant_exit_notice():
-    tenant_id = session.get('tenant_id')
-    if not tenant_id:
-        return redirect(url_for('main.tenant_login'))
+    from app import db
+    if 'landlord_id' not in session:
+        return redirect(url_for('main.login'))
     
-    tenant = Tenant.query.get(tenant_id)
+    tenant = Tenant.query.get(session['landlord_id'])
     if not tenant:
         flash('Tenant not found.', 'error')
-        return redirect(url_for('main.tenant_login'))
+        return redirect(url_for('main.login'))
     
     if request.method == 'POST':
         try:
@@ -1598,7 +1736,10 @@ def tenant_exit_notice():
             return redirect(url_for('main.tenant_dashboard'))
             
         except Exception as e:
-            db.session.rollback()
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
             flash(f'Error submitting exit notice: {str(e)}', 'error')
             return render_template('tenant_exit_notice.html', tenant=tenant)
     
@@ -1623,6 +1764,7 @@ def landlord_exit_notices():
 
 @main.route('/landlord/exit_notice/<int:notice_id>/respond', methods=['GET', 'POST'])
 def respond_exit_notice(notice_id):
+    from app import db
     if 'landlord_id' not in session:
         return redirect(url_for('main.login'))
     
@@ -1665,7 +1807,10 @@ def respond_exit_notice(notice_id):
             return redirect(url_for('main.landlord_exit_notices'))
             
         except Exception as e:
-            db.session.rollback()
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
             flash(f'Error responding to exit notice: {str(e)}', 'error')
     
     return render_template('respond_exit_notice.html', exit_notice=exit_notice)
@@ -2221,6 +2366,7 @@ def trigger_unpaid_reminders():
 
 @main.route('/generate_invoice/<int:tenant_id>', methods=['GET', 'POST'])
 def generate_invoice(tenant_id):
+    from app import db
     if 'landlord_id' not in session:
         flash('Please log in to generate invoices.')
         return redirect(url_for('main.login'))
@@ -2312,9 +2458,9 @@ def generate_invoice(tenant_id):
             
             db.session.commit()
             
-            # Send via email if tenant has email and landlord has permission
+            # Send via email if tenant has email (send regardless of subscription plan)
             email_sent = False
-            if tenant.email and SubscriptionService.can_send_email(session['landlord_id']):
+            if tenant.email:
                 email_sent = send_custom_invoice_email(tenant, invoice_buffer, month, year, total_amount, additional_charges)
                 if email_sent:
                     update_usage_logs(session['landlord_id'], 'email_sent')
@@ -2334,6 +2480,10 @@ def generate_invoice(tenant_id):
             return redirect(url_for('main.dashboard'))
             
         except Exception as e:
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
             flash(f'Error generating invoice: {str(e)}')
             return redirect(url_for('main.dashboard'))
     
@@ -2813,6 +2963,7 @@ def employees():
 
 @main.route('/employees/add', methods=['GET', 'POST'])
 def add_employee():
+    from app import db
     if 'landlord_id' not in session:
         flash('Please log in to add employees.', 'error')
         return redirect(url_for('main.login'))
@@ -2868,7 +3019,10 @@ def add_employee():
             return redirect(url_for('main.employees'))
             
         except Exception as e:
-            db.session.rollback()
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
             flash(f'Error adding employee: {str(e)}', 'error')
             return render_template('add_employee.html', landlord=landlord)
     
@@ -2877,6 +3031,7 @@ def add_employee():
 
 @main.route('/employees/<int:employee_id>/edit', methods=['GET', 'POST'])
 def edit_employee(employee_id):
+    from app import db
     if 'landlord_id' not in session:
         flash('Please log in to edit employees.', 'error')
         return redirect(url_for('main.login'))
@@ -2908,7 +3063,10 @@ def edit_employee(employee_id):
             return redirect(url_for('main.employees'))
             
         except Exception as e:
-            db.session.rollback()
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
             flash(f'Error updating employee: {str(e)}', 'error')
             return render_template('edit_employee.html', employee=employee)
     
@@ -2917,6 +3075,7 @@ def edit_employee(employee_id):
 
 @main.route('/employees/<int:employee_id>/delete', methods=['POST'])
 def delete_employee(employee_id):
+    from app import db
     if 'landlord_id' not in session:
         return jsonify({'success': False, 'message': 'Please log in to delete employees.'})
     
@@ -2932,7 +3091,10 @@ def delete_employee(employee_id):
         db.session.commit()
         return jsonify({'success': True, 'message': 'Employee deactivated successfully!'})
     except Exception as e:
-        db.session.rollback()
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
         return jsonify({'success': False, 'message': str(e)})
 
 
@@ -2965,7 +3127,10 @@ def activate_employee(employee_id):
             return jsonify({'success': True, 'message': 'Employee activated successfully! (Email failed to send)'})
             
     except Exception as e:
-        db.session.rollback()
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
         return jsonify({'success': False, 'message': str(e)})
 
 # Employee Management Routes
@@ -3241,13 +3406,17 @@ def admin_dashboard():
     
     # Get database health
     db_health = DatabaseHealth.query.order_by(DatabaseHealth.recorded_at.desc()).first()
-    
+
+    # Get latest sent emails
+    sent_emails = SentEmail.query.order_by(SentEmail.sent_at.desc()).limit(10).all()
+
     return render_template('admin/dashboard.html', 
                          stats=stats, 
                          recent_logs=recent_logs,
                          security_alerts=security_alerts,
                          error_logs=error_logs,
-                         db_health=db_health)
+                         db_health=db_health,
+                         sent_emails=sent_emails)
 
 @main.route('/admin/users')
 def admin_users():
@@ -3756,5 +3925,66 @@ def admin_reactivate_subscription(subscription_id):
     
     flash('Subscription reactivated successfully.', 'success')
     return redirect(url_for('main.admin_subscription_detail', subscription_id=subscription_id))
+
+@main.route('/admin/test_email', methods=['GET', 'POST'])
+def admin_test_email():
+    if 'admin_id' not in session:
+        return redirect(url_for('main.admin_login'))
+    if request.method == 'POST':
+        email = request.form.get('email')
+        if not email:
+            flash('Please provide an email address.', 'error')
+            return redirect(url_for('main.admin_dashboard'))
+        try:
+            from app import mail
+            from flask_mail import Message
+            subject = "SmartBiller Email Test"
+            body = "This is a test email from SmartBiller to verify email functionality is working."
+            msg = Message(
+                subject=subject,
+                recipients=[email],
+                body=body
+            )
+            mail.send(msg)
+            # Log sent email
+            sent_email = SentEmail(subject=subject, body=body, sender=msg.sender or msg.sender, recipient=email)
+            db.session.add(sent_email)
+            db.session.commit()
+            flash(f'Test email sent successfully to {email}', 'success')
+        except Exception as e:
+            flash(f'Failed to send test email: {str(e)}', 'error')
+        return redirect(url_for('main.admin_dashboard'))
+    return render_template('admin/test_email.html')
+
+@main.route('/admin/sent_emails')
+def admin_sent_emails():
+    if 'admin_id' not in session:
+        return redirect(url_for('main.admin_login'))
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    sent_emails = SentEmail.query.order_by(SentEmail.sent_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    return render_template('admin/sent_emails.html', sent_emails=sent_emails)
+
+@main.route('/verify_landlord', methods=['GET', 'POST'])
+def verify_landlord():
+    email = request.args.get('email') or request.form.get('email')
+    if not email:
+        flash('Missing email for verification.', 'error')
+        return redirect(url_for('main.login'))
+    landlord = Landlord.query.filter_by(email=email).first()
+    if not landlord:
+        flash('Landlord not found.', 'error')
+        return redirect(url_for('main.login'))
+    if request.method == 'POST':
+        code = request.form.get('code')
+        if code == landlord.email_verification_code:
+            landlord.is_email_verified = True
+            landlord.email_verification_code = None
+            db.session.commit()
+            flash('Email verified! You can now log in.', 'success')
+            return redirect(url_for('main.login'))
+        else:
+            flash('Invalid verification code. Please try again.', 'error')
+    return render_template('verify_landlord.html', email=email)
 
 

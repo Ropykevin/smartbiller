@@ -142,6 +142,13 @@
                 <i class="fas fa-exclamation-triangle mr-3"></i>
                 <span>Error Management</span>
             </a>
+
+            <!-- Sent Emails -->
+            <a href="{{ url_for('main.admin_sent_emails') }}"
+                class="sidebar-link {% if request.endpoint == 'main.admin_sent_emails' %}active{% endif %} flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                <i class="fas fa-envelope mr-3"></i>
+                <span>Sent Emails</span>
+            </a>
         </nav>
 
         <!-- Logout -->

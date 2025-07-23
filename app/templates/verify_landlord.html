@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Your Email - SmartBiller{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-10 bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+    <h2 class="text-2xl font-bold mb-4 text-gray-900">Verify Your Email</h2>
+    <p class="mb-4 text-gray-700">A verification code has been sent to <span class="font-semibold">{{ email }}</span>.
+        Please enter it below to activate your account.</p>
+    <form method="POST" action="{{ url_for('main.verify_landlord') }}">
+        <input type="hidden" name="email" value="{{ email }}">
+        <div class="mb-4">
+            <label for="code" class="block text-sm font-medium text-gray-700 mb-2">Verification Code</label>
+            <input type="text" id="code" name="code" maxlength="6"
+                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                placeholder="Enter code" required>
+        </div>
+        <button type="submit"
+            class="bg-purple-600 text-white px-6 py-2 rounded-lg shadow hover:bg-purple-700 transition-colors">Verify
+            Email</button>
+    </form>
+</div>
+{% endblock %}
