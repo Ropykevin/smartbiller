@@ -4,8 +4,8 @@
 set -e
 
 # === Configuration ===
-DB_NAME="smartbiller"
-DB_USER="smartbiller"
+DB_NAME="smartbiller1"
+DB_USER="smartbiller1"
 DB_PASSWORD="smartbiller254!"
 DOMAIN="smartbiller.co.ke"
 EMAIL="admin@${DOMAIN}"   # Used by Certbot
