@@ -247,6 +247,7 @@ def send_employee_reactivation_email(employee, landlord_name):
         return False
 
 @main.route('/')
+@main.route('/index')
 def index():
     if 'landlord_id' in session:
         return redirect(url_for('main.dashboard'))
