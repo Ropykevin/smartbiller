@@ -80,9 +80,37 @@ echo "✅ Flask database migrations complete"
 
 # === Setup Nginx ===
 echo "⚙️  Setting up Nginx config..."
-sudo cp "${PROJECT_DIR}/nginx.conf" /etc/nginx/sites-available/${DOMAIN}
+
+# Use site-specific config file (only server blocks, no events/http)
+if [ -f "${PROJECT_DIR}/nginx-site.conf" ]; then
+    sudo cp "${PROJECT_DIR}/nginx-site.conf" /etc/nginx/sites-available/${DOMAIN}
+    echo "✅ Using nginx-site.conf (site-specific config)"
+else
+    echo "⚠️  nginx-site.conf not found, using nginx.conf (may need manual editing)"
+    sudo cp "${PROJECT_DIR}/nginx.conf" /etc/nginx/sites-available/${DOMAIN}
+fi
+
+# Create symlink
 sudo ln -sf /etc/nginx/sites-available/${DOMAIN} /etc/nginx/sites-enabled/
-sudo nginx -t && sudo systemctl reload nginx
+
+# Check if rate limiting zones exist in main nginx.conf
+if ! sudo grep -q "limit_req_zone.*zone=api" /etc/nginx/nginx.conf 2>/dev/null; then
+    echo "⚠️  Rate limiting zones not found in main nginx.conf"
+    echo "📝 You may need to add these to /etc/nginx/nginx.conf in the http block:"
+    echo "   limit_req_zone \$binary_remote_addr zone=api:10m rate=10r/s;"
+    echo "   limit_req_zone \$binary_remote_addr zone=login:10m rate=5r/m;"
+fi
+
+# Test and reload nginx
+echo "🧪 Testing nginx configuration..."
+if sudo nginx -t; then
+    echo "✅ Nginx configuration is valid"
+    sudo systemctl reload nginx
+    echo "✅ Nginx reloaded successfully"
+else
+    echo "❌ Nginx configuration test failed. Please check the errors above."
+    exit 1
+fi
 
 echo "✅ Nginx config applied"
 
