@@ -71,18 +71,18 @@ sleep 5
 # Run migrations using flask db commands (Flask-Migrate standard)
 # No venv needed in Docker container - Python is installed directly
 ${DOCKER_COMPOSE} exec -e FLASK_APP=manage.py web flask db upgrade || {
-    echo "⚠️  Migration failed, trying to initialize..."
-    ${DOCKER_COMPOSE} exec -e FLASK_APP=manage.py web flask db stamp head || true
-    ${DOCKER_COMPOSE} exec -e FLASK_APP=manage.py web flask db upgrade || true
+    echo "⚠️  Migration failed. This might be normal if migrations are already applied."
+    echo "📊 Checking migration status..."
+    ${DOCKER_COMPOSE} exec -e FLASK_APP=manage.py web flask db current || true
 }
 
 echo "✅ Flask database migrations complete"
 
 # === Setup Nginx ===
 echo "⚙️  Setting up Nginx config..."
-cp "${PROJECT_DIR}/nginx.conf" /etc/nginx/sites-available/${DOMAIN}
-ln -sf /etc/nginx/sites-available/${DOMAIN} /etc/nginx/sites-enabled/
-nginx -t && systemctl reload nginx
+sudo cp "${PROJECT_DIR}/nginx.conf" /etc/nginx/sites-available/${DOMAIN}
+sudo ln -sf /etc/nginx/sites-available/${DOMAIN} /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
 
 echo "✅ Nginx config applied"
 
