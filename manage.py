@@ -11,3 +11,7 @@ migrate = Migrate(app, db)
 def init_db():
     db.create_all()
     click.echo("Database initialized.")
+
+# Flask-Migrate commands are automatically registered via the Migrate object above
+# Use: flask db upgrade, flask db migrate, etc. with FLASK_APP=manage.py
+# Or: python manage.py db upgrade (if Flask CLI is properly configured)

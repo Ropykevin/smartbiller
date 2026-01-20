@@ -15,7 +15,9 @@ RUN pip install --upgrade pip \
 
 COPY ./app /app/app
 COPY run.py /app/run.py
+COPY manage.py /app/manage.py
 COPY uwsgi.ini /app/uwsgi.ini
+COPY ./migrations /app/migrations
 
 # Note: .env file should be provided via env_file in docker-compose.yml
 # This line is kept for backward compatibility but .env should not be in version control
