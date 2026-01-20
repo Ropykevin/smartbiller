@@ -17,4 +17,6 @@ COPY ./app /app/app
 COPY run.py /app/run.py
 COPY uwsgi.ini /app/uwsgi.ini
 
-COPY .env /app/.env
+# Note: .env file should be provided via env_file in docker-compose.yml
+# This line is kept for backward compatibility but .env should not be in version control
+# COPY .env /app/.env

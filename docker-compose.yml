@@ -11,7 +11,7 @@ services:
     depends_on:
       - db                         # ✅ wait for Postgres before booting
     environment:
-      - DATABASE_URL=postgresql://smartbiller1:smartbiller254!@db:5432/smartbiller
+      - DATABASE_URL=postgresql://smartbiller:smartbiller254!@db:5432/smartbiller
     volumes:
       - ./app/static:/app/app/static  # Optional: for persistent uploads, images, etc.
     networks:

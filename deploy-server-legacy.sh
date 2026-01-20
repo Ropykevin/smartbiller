@@ -71,10 +71,10 @@ if lsof -Pi :5433 -sTCP:LISTEN -t >/dev/null ; then
     exit 1
 fi
 
-# Build and start Docker containers using simplified compose file
+# Build and start Docker containers
 print_status "Building and starting Docker containers..."
-docker-compose -f docker-compose.server.yml build --no-cache
-docker-compose -f docker-compose.server.yml up -d
+docker-compose build --no-cache
+docker-compose up -d
 
 # Wait for database to be ready
 print_status "Waiting for database to be ready..."
@@ -83,13 +83,13 @@ sleep 15
 # Check if database is accessible
 print_status "Checking database connectivity..."
 for i in {1..30}; do
-    if docker-compose -f docker-compose.server.yml exec db pg_isready -U smartbiller >/dev/null 2>&1; then
+    if docker-compose exec db pg_isready -U smartbiller >/dev/null 2>&1; then
         print_status "Database is ready!"
         break
     fi
     if [ $i -eq 30 ]; then
         print_error "Database failed to start within 30 seconds"
-        docker-compose -f docker-compose.server.yml logs db
+        docker-compose logs db
         exit 1
     fi
     sleep 1
@@ -97,28 +97,28 @@ done
 
 # Run database migrations
 print_status "Running database migrations..."
-docker-compose -f docker-compose.server.yml exec web python manage.py db upgrade || {
+docker-compose exec web python manage.py db upgrade || {
     print_warning "Database migration failed. This might be normal for first deployment."
 }
 
 # Check if services are running
 print_status "Checking service status..."
-docker-compose -f docker-compose.server.yml ps
+docker-compose ps
 
 # Show logs
 print_status "Showing recent logs..."
-docker-compose -f docker-compose.server.yml logs --tail=20
+docker-compose logs --tail=20
 
 print_status "✅ Deployment completed successfully!"
 print_status "🌐 Application should be available at: http://localhost:5020"
 print_status "🗄️  Database accessible at: localhost:5433"
-print_status "📊 To view logs: docker-compose -f docker-compose.server.yml logs -f"
-print_status "🛑 To stop: docker-compose -f docker-compose.server.yml down"
+print_status "📊 To view logs: docker-compose logs -f"
+print_status "🛑 To stop: docker-compose down"
 
 # Show container status
 echo ""
 print_status "Container Status:"
-docker-compose -f docker-compose.server.yml ps
+docker-compose ps
 
 # Show port mappings
 echo ""
