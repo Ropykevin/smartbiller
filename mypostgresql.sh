@@ -93,12 +93,75 @@ fi
 # Create symlink
 sudo ln -sf /etc/nginx/sites-available/${DOMAIN} /etc/nginx/sites-enabled/
 
-# Check if rate limiting zones exist in main nginx.conf
+# Check if rate limiting zones exist in main nginx.conf and add them if missing
 if ! sudo grep -q "limit_req_zone.*zone=api" /etc/nginx/nginx.conf 2>/dev/null; then
-    echo "⚠️  Rate limiting zones not found in main nginx.conf"
-    echo "📝 You may need to add these to /etc/nginx/nginx.conf in the http block:"
-    echo "   limit_req_zone \$binary_remote_addr zone=api:10m rate=10r/s;"
-    echo "   limit_req_zone \$binary_remote_addr zone=login:10m rate=5r/m;"
+    echo "📝 Adding rate limiting zones to main nginx.conf..."
+    
+    # Backup nginx.conf
+    BACKUP_FILE="/etc/nginx/nginx.conf.backup.$(date +%Y%m%d_%H%M%S)"
+    sudo cp /etc/nginx/nginx.conf "$BACKUP_FILE"
+    echo "💾 Backup created: $BACKUP_FILE"
+    
+    # Use Python to add rate limiting zones after http { block
+    sudo python3 << 'PYTHON_SCRIPT'
+import re
+import sys
+
+nginx_conf_path = '/etc/nginx/nginx.conf'
+
+try:
+    with open(nginx_conf_path, 'r') as f:
+        content = f.read()
+    
+    # Check if zones already exist (double check)
+    if re.search(r'limit_req_zone.*zone=api', content):
+        print("✅ Rate limiting zones already exist")
+        sys.exit(0)
+    
+    # Find http { block and add rate limiting zones after it
+    # Match "http" followed by optional whitespace and "{"
+    pattern = r'(http\s*\{)'
+    
+    # Replacement with the zones
+    replacement = r'\1\n    # Rate limiting zones\n    limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;\n    limit_req_zone $binary_remote_addr zone=login:10m rate=5r/m;'
+    
+    new_content = re.sub(pattern, replacement, content, count=1)
+    
+    if new_content != content:
+        with open(nginx_conf_path, 'w') as f:
+            f.write(new_content)
+        print("✅ Rate limiting zones added successfully")
+        sys.exit(0)
+    else:
+        print("⚠️  Could not find http { block in nginx.conf")
+        print("📝 Please manually add these lines to /etc/nginx/nginx.conf inside the http { block:")
+        print("   limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;")
+        print("   limit_req_zone $binary_remote_addr zone=login:10m rate=5r/m;")
+        sys.exit(1)
+except Exception as e:
+    print(f"❌ Error adding rate limiting zones: {e}")
+    sys.exit(1)
+PYTHON_SCRIPT
+    
+    ADD_RESULT=$?
+    if [ $ADD_RESULT -ne 0 ]; then
+        echo "⚠️  Failed to automatically add rate limiting zones"
+        echo "🔄 Temporarily commenting out rate limiting in site config..."
+        
+        # Comment out rate limiting directives in site config as fallback
+        sudo sed -i 's/limit_req zone=api/#limit_req zone=api/g' /etc/nginx/sites-available/${DOMAIN}
+        sudo sed -i 's/limit_req zone=login/#limit_req zone=login/g' /etc/nginx/sites-available/${DOMAIN}
+        
+        echo "📝 Rate limiting temporarily disabled. To enable:"
+        echo "   1. Edit /etc/nginx/nginx.conf"
+        echo "   2. Find the 'http {' line"
+        echo "   3. Add these two lines immediately after it:"
+        echo "      limit_req_zone \$binary_remote_addr zone=api:10m rate=10r/s;"
+        echo "      limit_req_zone \$binary_remote_addr zone=login:10m rate=5r/m;"
+        echo "   4. Uncomment rate limiting in /etc/nginx/sites-available/${DOMAIN}"
+    fi
+else
+    echo "✅ Rate limiting zones already exist in nginx.conf"
 fi
 
 # Test and reload nginx
