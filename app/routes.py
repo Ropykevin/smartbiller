@@ -354,6 +354,142 @@ def logout():
         return redirect(url_for('main.index'))
 
 
+@main.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        landlord = Landlord.query.filter_by(email=email).first()
+        
+        if landlord:
+            # Generate reset token
+            reset_token = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
+            landlord.password_reset_token = reset_token
+            landlord.password_reset_expiry = datetime.utcnow() + timedelta(hours=1)  # Token valid for 1 hour
+            db.session.commit()
+            
+            # Send reset email
+            try:
+                from app import mail
+                reset_url = url_for('main.reset_password', token=reset_token, _external=True)
+                
+                subject = 'Password Reset Request - SmartBiller'
+                html_content = f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <title>Password Reset</title>
+                    <style>
+                        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                        .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+                        .content {{ background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }}
+                        .button {{ background: #4CAF50; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0; }}
+                        .footer {{ text-align: center; margin-top: 30px; color: #666; font-size: 14px; }}
+                        .warning {{ background: #fff3cd; border: 1px solid #ffc107; padding: 15px; border-radius: 5px; margin: 20px 0; }}
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h1>🔐 Password Reset Request</h1>
+                        </div>
+                        <div class="content">
+                            <h2>Hello {landlord.name},</h2>
+                            <p>We received a request to reset your password for your SmartBiller account.</p>
+                            <p>Click the button below to reset your password:</p>
+                            <div style="text-align: center;">
+                                <a href="{reset_url}" class="button">Reset Password</a>
+                            </div>
+                            <p>Or copy and paste this link into your browser:</p>
+                            <p style="word-break: break-all; color: #667eea;">{reset_url}</p>
+                            <div class="warning">
+                                <strong>⚠️ Important:</strong> This link will expire in 1 hour. If you didn't request this password reset, please ignore this email.
+                            </div>
+                            <p>If you have any questions, please contact our support team.</p>
+                        </div>
+                        <div class="footer">
+                            <p>© SmartBiller - Property Management Made Easy</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """
+                
+                msg = Message(subject=subject, recipients=[email], html=html_content)
+                mail.send(msg)
+                
+                # Log email sent
+                sent_email = SentEmail(
+                    subject=subject,
+                    body=html_content,
+                    sender=current_app.config['MAIL_DEFAULT_SENDER'],
+                    recipient=email
+                )
+                db.session.add(sent_email)
+                db.session.commit()
+                
+                log_system_event('info', 'auth', f'Password reset email sent: {email}', 
+                               landlord.id, 'landlord', request.remote_addr, request.user_agent.string)
+                
+                flash('Password reset instructions have been sent to your email address.', 'success')
+            except Exception as e:
+                print(f"Error sending password reset email: {e}")
+                flash('Error sending email. Please try again later or contact support.', 'error')
+                db.session.rollback()
+        else:
+            # Don't reveal if email exists or not (security best practice)
+            flash('If an account with that email exists, password reset instructions have been sent.', 'success')
+        
+        return redirect(url_for('main.login'))
+    
+    return render_template('forgot_password.html')
+
+
+@main.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    landlord = Landlord.query.filter_by(password_reset_token=token).first()
+    
+    if not landlord:
+        flash('Invalid or expired reset token.', 'error')
+        return redirect(url_for('main.forgot_password'))
+    
+    # Check if token has expired
+    if landlord.password_reset_expiry and landlord.password_reset_expiry < datetime.utcnow():
+        flash('Reset token has expired. Please request a new password reset.', 'error')
+        landlord.password_reset_token = None
+        landlord.password_reset_expiry = None
+        db.session.commit()
+        return redirect(url_for('main.forgot_password'))
+    
+    if request.method == 'POST':
+        new_password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        
+        # Validate passwords
+        if not new_password or len(new_password) < 6:
+            flash('Password must be at least 6 characters long.', 'error')
+            return render_template('reset_password.html', token=token)
+        
+        if new_password != confirm_password:
+            flash('Passwords do not match.', 'error')
+            return render_template('reset_password.html', token=token)
+        
+        # Update password
+        landlord.password = generate_password_hash(new_password)
+        landlord.password_reset_token = None
+        landlord.password_reset_expiry = None
+        db.session.commit()
+        
+        log_system_event('info', 'auth', f'Password reset successful: {landlord.email}', 
+                       landlord.id, 'landlord', request.remote_addr, request.user_agent.string)
+        
+        flash('Your password has been reset successfully. Please login with your new password.', 'success')
+        return redirect(url_for('main.login'))
+    
+    return render_template('reset_password.html', token=token)
+
+
 @main.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
     if 'landlord_id' not in session:

@@ -23,6 +23,9 @@ class Landlord(db.Model):
     # Email verification fields
     is_email_verified = db.Column(db.Boolean, default=False)
     email_verification_code = db.Column(db.String(10))
+    # Password reset fields
+    password_reset_token = db.Column(db.String(100))
+    password_reset_expiry = db.Column(db.DateTime)
 
 class Subscription(db.Model):
     id = db.Column(db.Integer, primary_key=True)
